@@ -37,7 +37,9 @@
 #include <linux/of.h>
 #include <net/netlink.h>
 #include <net/genetlink.h>
+#ifndef __GENKSYMS__
 #include <linux/suspend.h>
+#endif
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/thermal.h>
