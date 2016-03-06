@@ -1200,6 +1200,13 @@ struct dst_entry *ip6_route_output_flags(struct net *net, const struct sock *sk,
 }
 EXPORT_SYMBOL_GPL(ip6_route_output_flags);
 
+struct dst_entry *ip6_route_output(struct net *net, const struct sock *sk,
+				   struct flowi6 *fl6)
+{
+	return ip6_route_output_flags(net, sk, fl6, 0);
+}
+EXPORT_SYMBOL(ip6_route_output);
+
 struct dst_entry *ip6_blackhole_route(struct net *net, struct dst_entry *dst_orig)
 {
 	struct rt6_info *rt, *ort = (struct rt6_info *) dst_orig;
