@@ -1,0 +1,39 @@
+commit a85722c650265714c592d7ef99d277106dbb17bb
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Mon Mar 7 20:11:52 2016 +0100
+
+    USB: uas: Reduce can_queue to MAX_CMNDS
+    
+    commit 55ff8cfbc4e12a7d2187df523938cc671fbebdd1 upstream.
+    
+    The uas driver can never queue more then MAX_CMNDS (- 1) tags and tags
+    are shared between luns, so there is no need to claim that we can_queue
+    some random large number.
+    
+    Not claiming that we can_queue 65536 commands, fixes the uas driver
+    failing to initialize while allocating the tag map with a "Page allocation
+    failure (order 7)" error on systems which have been running for a while
+    and thus have fragmented memory.
+    
+    Reported-and-tested-by: Yves-Alexis Perez <corsac@corsac.net>
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/usb/storage/uas.c b/drivers/usb/storage/uas.c
+index 5c66d3f..ce0cd6e 100644
+--- a/drivers/usb/storage/uas.c
++++ b/drivers/usb/storage/uas.c
+@@ -812,7 +812,7 @@ static struct scsi_host_template uas_host_template = {
+ 	.slave_configure = uas_slave_configure,
+ 	.eh_abort_handler = uas_eh_abort_handler,
+ 	.eh_bus_reset_handler = uas_eh_bus_reset_handler,
+-	.can_queue = 65536,	/* Is there a limit on the _host_ ? */
++	.can_queue = MAX_CMNDS,
+ 	.this_id = -1,
+ 	.sg_tablesize = SG_NONE,
+ 	.skip_settle_delay = 1,
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1292_a85722c650265714c592d7ef99d277106dbb17bb.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1292_a85722c650265714c592d7ef99d277106dbb17bb.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

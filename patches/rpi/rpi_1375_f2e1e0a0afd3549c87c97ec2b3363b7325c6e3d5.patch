@@ -1,0 +1,54 @@
+commit f2e1e0a0afd3549c87c97ec2b3363b7325c6e3d5
+Author: Max Filippov <jcmvbkbc@gmail.com>
+Date:   Tue Feb 9 01:02:38 2016 +0300
+
+    xtensa: ISS: don't hang if stdin EOF is reached
+    
+    commit 362014c8d9d51d504c167c44ac280169457732be upstream.
+    
+    Simulator stdin may be connected to a file, when its end is reached
+    kernel hangs in infinite loop inside rs_poll, because simc_poll always
+    signals that descriptor 0 is readable and simc_read always returns 0.
+    Check simc_read return value and exit loop if it's not positive. Also
+    don't rewind polling timer if it's zero.
+    
+    Signed-off-by: Max Filippov <jcmvbkbc@gmail.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/xtensa/platforms/iss/console.c b/arch/xtensa/platforms/iss/console.c
+index 70cb408..92d785f 100644
+--- a/arch/xtensa/platforms/iss/console.c
++++ b/arch/xtensa/platforms/iss/console.c
+@@ -100,21 +100,23 @@ static void rs_poll(unsigned long priv)
+ {
+ 	struct tty_port *port = (struct tty_port *)priv;
+ 	int i = 0;
++	int rd = 1;
+ 	unsigned char c;
+ 
+ 	spin_lock(&timer_lock);
+ 
+ 	while (simc_poll(0)) {
+-		simc_read(0, &c, 1);
++		rd = simc_read(0, &c, 1);
++		if (rd <= 0)
++			break;
+ 		tty_insert_flip_char(port, c, TTY_NORMAL);
+ 		i++;
+ 	}
+ 
+ 	if (i)
+ 		tty_flip_buffer_push(port);
+-
+-
+-	mod_timer(&serial_timer, jiffies + SERIAL_TIMER_VALUE);
++	if (rd)
++		mod_timer(&serial_timer, jiffies + SERIAL_TIMER_VALUE);
+ 	spin_unlock(&timer_lock);
+ }
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1375_f2e1e0a0afd3549c87c97ec2b3363b7325c6e3d5.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1375_f2e1e0a0afd3549c87c97ec2b3363b7325c6e3d5.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

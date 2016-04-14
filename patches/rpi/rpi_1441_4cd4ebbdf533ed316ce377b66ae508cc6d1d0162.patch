@@ -1,0 +1,41 @@
+commit 4cd4ebbdf533ed316ce377b66ae508cc6d1d0162
+Author: Lukas Wunner <lukas@wunner.de>
+Date:   Wed Mar 23 00:11:20 2016 +0100
+
+    PM / sleep: Clear pm_suspend_global_flags upon hibernate
+    
+    commit 276142730c39c9839465a36a90e5674a8c34e839 upstream.
+    
+    When suspending to RAM, waking up and later suspending to disk,
+    we gratuitously runtime resume devices after the thaw phase.
+    This does not occur if we always suspend to RAM or always to disk.
+    
+    pm_complete_with_resume_check(), which gets called from
+    pci_pm_complete() among others, schedules a runtime resume
+    if PM_SUSPEND_FLAG_FW_RESUME is set. The flag is set during
+    a suspend-to-RAM cycle. It is cleared at the beginning of
+    the suspend-to-RAM cycle but not afterwards and it is not
+    cleared during a suspend-to-disk cycle at all. Fix it.
+    
+    Fixes: ef25ba047601 (PM / sleep: Add flags to indicate platform firmware involvement)
+    Signed-off-by: Lukas Wunner <lukas@wunner.de>
+    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+index b7342a2..b7dd571 100644
+--- a/kernel/power/hibernate.c
++++ b/kernel/power/hibernate.c
+@@ -339,6 +339,7 @@ int hibernation_snapshot(int platform_mode)
+ 	pm_message_t msg;
+ 	int error;
+ 
++	pm_suspend_clear_flags();
+ 	error = platform_begin(platform_mode);
+ 	if (error)
+ 		goto Close;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1441_4cd4ebbdf533ed316ce377b66ae508cc6d1d0162.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1441_4cd4ebbdf533ed316ce377b66ae508cc6d1d0162.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

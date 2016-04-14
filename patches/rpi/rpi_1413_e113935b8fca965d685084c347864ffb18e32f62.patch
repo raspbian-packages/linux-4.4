@@ -1,0 +1,58 @@
+commit e113935b8fca965d685084c347864ffb18e32f62
+Author: Russell King <rmk+kernel@arm.linux.org.uk>
+Date:   Tue Jan 26 13:41:04 2016 +0000
+
+    mmc: sdhci: fix data timeout (part 2)
+    
+    commit 7f05538af71c7d30b5fc821cbe9f318edc645961 upstream.
+    
+    The calculation for the timeout based on the number of card clocks is
+    incorrect.  The calculation assumed:
+    
+    	timeout in microseconds = clock cycles / clock in Hz
+    
+    which is clearly a several orders of magnitude wrong.  Fix this by
+    multiplying the clock cycles by 1000000 prior to dividing by the Hz
+    based clock.  Also, as per part 1, ensure that the division rounds
+    up.
+    
+    As this needs 64-bit math via do_div(), avoid it if the clock cycles
+    is zero.
+    
+    Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+    Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+    Tested-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+    Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index 14e118f..c993d39 100644
+--- a/drivers/mmc/host/sdhci.c
++++ b/drivers/mmc/host/sdhci.c
+@@ -667,8 +667,19 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
+ 		target_timeout = cmd->busy_timeout * 1000;
+ 	else {
+ 		target_timeout = DIV_ROUND_UP(data->timeout_ns, 1000);
+-		if (host->clock)
+-			target_timeout += data->timeout_clks / host->clock;
++		if (host->clock && data->timeout_clks) {
++			unsigned long long val;
++
++			/*
++			 * data->timeout_clks is in units of clock cycles.
++			 * host->clock is in Hz.  target_timeout is in us.
++			 * Hence, us = 1000000 * cycles / Hz.  Round up.
++			 */
++			val = 1000000 * data->timeout_clks;
++			if (do_div(val, host->clock))
++				target_timeout++;
++			target_timeout += val;
++		}
+ 	}
+ 
+ 	/*
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1413_e113935b8fca965d685084c347864ffb18e32f62.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1413_e113935b8fca965d685084c347864ffb18e32f62.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

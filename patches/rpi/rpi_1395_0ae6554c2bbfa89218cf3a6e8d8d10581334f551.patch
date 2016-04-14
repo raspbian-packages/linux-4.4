@@ -1,0 +1,71 @@
+commit 0ae6554c2bbfa89218cf3a6e8d8d10581334f551
+Author: Matti Gottlieb <matti.gottlieb@intel.com>
+Date:   Sun Feb 14 17:05:39 2016 +0200
+
+    iwlwifi: mvm: Fix paging memory leak
+    
+    commit 905e36ae172c83a30894a3adefab7d4f850fcf54 upstream.
+    
+    If the opmode is stopped and started again we did not free
+    the paging buffers. Fix that.
+    In addition when freeing the firmware's paging download
+    buffer, set the pointer to NULL.
+    
+    Signed-off-by: Matti Gottlieb <matti.gottlieb@intel.com>
+    Signed-off-by: Emmanuel Grumbach <emmanuel.grumbach@intel.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/net/wireless/iwlwifi/mvm/fw.c b/drivers/net/wireless/iwlwifi/mvm/fw.c
+index d906fa1..610c442 100644
+--- a/drivers/net/wireless/iwlwifi/mvm/fw.c
++++ b/drivers/net/wireless/iwlwifi/mvm/fw.c
+@@ -106,7 +106,7 @@ static int iwl_send_tx_ant_cfg(struct iwl_mvm *mvm, u8 valid_tx_ant)
+ 				    sizeof(tx_ant_cmd), &tx_ant_cmd);
+ }
+ 
+-static void iwl_free_fw_paging(struct iwl_mvm *mvm)
++void iwl_free_fw_paging(struct iwl_mvm *mvm)
+ {
+ 	int i;
+ 
+@@ -126,6 +126,8 @@ static void iwl_free_fw_paging(struct iwl_mvm *mvm)
+ 			     get_order(mvm->fw_paging_db[i].fw_paging_size));
+ 	}
+ 	kfree(mvm->trans->paging_download_buf);
++	mvm->trans->paging_download_buf = NULL;
++
+ 	memset(mvm->fw_paging_db, 0, sizeof(mvm->fw_paging_db));
+ }
+ 
+diff --git a/drivers/net/wireless/iwlwifi/mvm/mvm.h b/drivers/net/wireless/iwlwifi/mvm/mvm.h
+index 4bde2d0..244e26c 100644
+--- a/drivers/net/wireless/iwlwifi/mvm/mvm.h
++++ b/drivers/net/wireless/iwlwifi/mvm/mvm.h
+@@ -1190,6 +1190,9 @@ void iwl_mvm_rx_umac_scan_complete_notif(struct iwl_mvm *mvm,
+ void iwl_mvm_rx_umac_scan_iter_complete_notif(struct iwl_mvm *mvm,
+ 					      struct iwl_rx_cmd_buffer *rxb);
+ 
++/* Paging */
++void iwl_free_fw_paging(struct iwl_mvm *mvm);
++
+ /* MVM debugfs */
+ #ifdef CONFIG_IWLWIFI_DEBUGFS
+ int iwl_mvm_dbgfs_register(struct iwl_mvm *mvm, struct dentry *dbgfs_dir);
+diff --git a/drivers/net/wireless/iwlwifi/mvm/ops.c b/drivers/net/wireless/iwlwifi/mvm/ops.c
+index 13c97f6..c3adf2b 100644
+--- a/drivers/net/wireless/iwlwifi/mvm/ops.c
++++ b/drivers/net/wireless/iwlwifi/mvm/ops.c
+@@ -645,6 +645,8 @@ static void iwl_op_mode_mvm_stop(struct iwl_op_mode *op_mode)
+ 	for (i = 0; i < NVM_MAX_NUM_SECTIONS; i++)
+ 		kfree(mvm->nvm_sections[i].data);
+ 
++	iwl_free_fw_paging(mvm);
++
+ 	iwl_mvm_tof_clean(mvm);
+ 
+ 	ieee80211_free_hw(mvm->hw);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1395_0ae6554c2bbfa89218cf3a6e8d8d10581334f551.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1395_0ae6554c2bbfa89218cf3a6e8d8d10581334f551.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
