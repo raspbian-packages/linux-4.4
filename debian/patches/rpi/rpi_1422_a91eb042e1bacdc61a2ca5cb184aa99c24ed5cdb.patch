@@ -1,0 +1,37 @@
+commit a91eb042e1bacdc61a2ca5cb184aa99c24ed5cdb
+Author: Jenny Derzhavetz <jennyf@mellanox.com>
+Date:   Wed Feb 24 19:23:58 2016 +0200
+
+    iser-target: Fix identification of login rx descriptor type
+    
+    commit b89a7c25462b164db280abc3b05d4d9d888d40e9 upstream.
+    
+    Once connection request is accepted, one rx descriptor
+    is posted to receive login request. This descriptor has rx type,
+    but is outside the main pool of rx descriptors, and thus
+    was mistreated as tx type.
+    
+    Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
+    Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+    Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 8a51c3b..addb572 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -2035,7 +2035,8 @@ is_isert_tx_desc(struct isert_conn *isert_conn, void *wr_id)
+ 	void *start = isert_conn->rx_descs;
+ 	int len = ISERT_QP_MAX_RECV_DTOS * sizeof(*isert_conn->rx_descs);
+ 
+-	if (wr_id >= start && wr_id < start + len)
++	if ((wr_id >= start && wr_id < start + len) ||
++	    (wr_id == isert_conn->login_req_buf))
+ 		return false;
+ 
+ 	return true;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1422_a91eb042e1bacdc61a2ca5cb184aa99c24ed5cdb.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1422_a91eb042e1bacdc61a2ca5cb184aa99c24ed5cdb.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

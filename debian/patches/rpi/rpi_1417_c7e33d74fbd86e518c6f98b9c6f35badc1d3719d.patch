@@ -1,0 +1,39 @@
+commit c7e33d74fbd86e518c6f98b9c6f35badc1d3719d
+Author: Heiko Stuebner <heiko@sntech.de>
+Date:   Wed Jan 20 19:22:38 2016 +0100
+
+    clk: rockchip: rk3368: fix parents of video encoder/decoder
+    
+    commit 0f28d98463498c61c61a38aacbf9f69e92e85e9d upstream.
+    
+    The vdpu and vepu clocks can also be parented to the npll and current
+    parent list also is wrong as it would use the npll as "usbphy" source,
+    so adapt the parent to the correct one.
+    
+    Fixes: 3536c97a52db ("clk: rockchip: add rk3368 clock controller")
+    Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+    Reviewed-by: zhangqing <zhangqing@rock-chips.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/clk/rockchip/clk-rk3368.c b/drivers/clk/rockchip/clk-rk3368.c
+index 4e99072..aa41937 100644
+--- a/drivers/clk/rockchip/clk-rk3368.c
++++ b/drivers/clk/rockchip/clk-rk3368.c
+@@ -384,10 +384,10 @@ static struct rockchip_clk_branch rk3368_clk_branches[] __initdata = {
+ 	 * Clock-Architecture Diagram 3
+ 	 */
+ 
+-	COMPOSITE(0, "aclk_vepu", mux_pll_src_cpll_gpll_usb_p, 0,
++	COMPOSITE(0, "aclk_vepu", mux_pll_src_cpll_gpll_npll_usb_p, 0,
+ 			RK3368_CLKSEL_CON(15), 6, 2, MFLAGS, 0, 5, DFLAGS,
+ 			RK3368_CLKGATE_CON(4), 6, GFLAGS),
+-	COMPOSITE(0, "aclk_vdpu", mux_pll_src_cpll_gpll_usb_p, 0,
++	COMPOSITE(0, "aclk_vdpu", mux_pll_src_cpll_gpll_npll_usb_p, 0,
+ 			RK3368_CLKSEL_CON(15), 14, 2, MFLAGS, 8, 5, DFLAGS,
+ 			RK3368_CLKGATE_CON(4), 7, GFLAGS),
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1417_c7e33d74fbd86e518c6f98b9c6f35badc1d3719d.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1417_c7e33d74fbd86e518c6f98b9c6f35badc1d3719d.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
