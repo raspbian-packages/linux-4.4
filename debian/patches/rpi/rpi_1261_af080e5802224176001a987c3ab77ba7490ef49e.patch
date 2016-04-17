@@ -1,0 +1,74 @@
+commit af080e5802224176001a987c3ab77ba7490ef49e
+Author: Chris Friesen <cbf123@mail.usask.ca>
+Date:   Sat Mar 5 23:18:48 2016 -0600
+
+    sched/cputime: Fix steal_account_process_tick() to always return jiffies
+    
+    commit f9c904b7613b8b4c85b10cd6b33ad41b2843fa9d upstream.
+    
+    The callers of steal_account_process_tick() expect it to return
+    whether a jiffy should be considered stolen or not.
+    
+    Currently the return value of steal_account_process_tick() is in
+    units of cputime, which vary between either jiffies or nsecs
+    depending on CONFIG_VIRT_CPU_ACCOUNTING_GEN.
+    
+    If cputime has nsecs granularity and there is a tiny amount of
+    stolen time (a few nsecs, say) then we will consider the entire
+    tick stolen and will not account the tick on user/system/idle,
+    causing /proc/stats to show invalid data.
+    
+    The fix is to change steal_account_process_tick() to accumulate
+    the stolen time and only account it once it's worth a jiffy.
+    
+    (Thanks to Frederic Weisbecker for suggestions to fix a bug in my
+    first version of the patch.)
+    
+    Signed-off-by: Chris Friesen <chris.friesen@windriver.com>
+    Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+    Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+    Cc: Frederic Weisbecker <fweisbec@gmail.com>
+    Cc: Linus Torvalds <torvalds@linux-foundation.org>
+    Cc: Peter Zijlstra <peterz@infradead.org>
+    Link: http://lkml.kernel.org/r/56DBBDB8.40305@mail.usask.ca
+    Signed-off-by: Ingo Molnar <mingo@kernel.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/kernel/sched/cputime.c b/kernel/sched/cputime.c
+index 05de80b..f74ea89 100644
+--- a/kernel/sched/cputime.c
++++ b/kernel/sched/cputime.c
+@@ -259,21 +259,21 @@ static __always_inline bool steal_account_process_tick(void)
+ #ifdef CONFIG_PARAVIRT
+ 	if (static_key_false(&paravirt_steal_enabled)) {
+ 		u64 steal;
+-		cputime_t steal_ct;
++		unsigned long steal_jiffies;
+ 
+ 		steal = paravirt_steal_clock(smp_processor_id());
+ 		steal -= this_rq()->prev_steal_time;
+ 
+ 		/*
+-		 * cputime_t may be less precise than nsecs (eg: if it's
+-		 * based on jiffies). Lets cast the result to cputime
++		 * steal is in nsecs but our caller is expecting steal
++		 * time in jiffies. Lets cast the result to jiffies
+ 		 * granularity and account the rest on the next rounds.
+ 		 */
+-		steal_ct = nsecs_to_cputime(steal);
+-		this_rq()->prev_steal_time += cputime_to_nsecs(steal_ct);
++		steal_jiffies = nsecs_to_jiffies(steal);
++		this_rq()->prev_steal_time += jiffies_to_nsecs(steal_jiffies);
+ 
+-		account_steal_time(steal_ct);
+-		return steal_ct;
++		account_steal_time(jiffies_to_cputime(steal_jiffies));
++		return steal_jiffies;
+ 	}
+ #endif
+ 	return false;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1261_af080e5802224176001a987c3ab77ba7490ef49e.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1261_af080e5802224176001a987c3ab77ba7490ef49e.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

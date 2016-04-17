@@ -1,0 +1,46 @@
+commit b82ed7dc00f3472d4a7bca472e05ed9744881bc8
+Author: Shaohua Li <shli@fb.com>
+Date:   Mon Mar 14 11:49:32 2016 -0700
+
+    raid10: include bio_end_io_list in nr_queued to prevent freeze_array hang
+    
+    commit 23ddba80ebe836476bb2fa1f5ef305dd1c63dc0b upstream.
+    
+    This is the raid10 counterpart of the bug fixed by Nate
+    (raid1: include bio_end_io_list in nr_queued to prevent freeze_array hang)
+    
+    Fixes: 95af587e95(md/raid10: ensure device failure recorded before write request returns)
+    Cc: Nate Dailey <nate.dailey@stratus.com>
+    Signed-off-by: Shaohua Li <shli@fb.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/md/raid10.c b/drivers/md/raid10.c
+index ce959b4..ebb0dd6 100644
+--- a/drivers/md/raid10.c
++++ b/drivers/md/raid10.c
+@@ -2664,6 +2664,7 @@ static void handle_write_completed(struct r10conf *conf, struct r10bio *r10_bio)
+ 		if (fail) {
+ 			spin_lock_irq(&conf->device_lock);
+ 			list_add(&r10_bio->retry_list, &conf->bio_end_io_list);
++			conf->nr_queued++;
+ 			spin_unlock_irq(&conf->device_lock);
+ 			md_wakeup_thread(conf->mddev->thread);
+ 		} else {
+@@ -2691,8 +2692,10 @@ static void raid10d(struct md_thread *thread)
+ 		LIST_HEAD(tmp);
+ 		spin_lock_irqsave(&conf->device_lock, flags);
+ 		if (!test_bit(MD_CHANGE_PENDING, &mddev->flags)) {
+-			list_add(&tmp, &conf->bio_end_io_list);
+-			list_del_init(&conf->bio_end_io_list);
++			while (!list_empty(&conf->bio_end_io_list)) {
++				list_move(conf->bio_end_io_list.prev, &tmp);
++				conf->nr_queued--;
++			}
+ 		}
+ 		spin_unlock_irqrestore(&conf->device_lock, flags);
+ 		while (!list_empty(&tmp)) {
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1386_b82ed7dc00f3472d4a7bca472e05ed9744881bc8.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1386_b82ed7dc00f3472d4a7bca472e05ed9744881bc8.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

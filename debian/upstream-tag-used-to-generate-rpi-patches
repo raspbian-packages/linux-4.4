@@ -1,0 +1,41 @@
+tag v4.4.6
+Tagger: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date:   Wed Mar 16 08:43:22 2016 -0700
+
+This is the 4.4.6 stable release
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJW6X8aAAoJEDjbvchgkmk+/bgQALZchnUrYj/ymJso8wVZtgsa
+nABO00RX/czIDsoOxCSkMTD1tm1SbCiC0h5xyFiFOgE93f0UYj1l7cDre75+fPHt
+RrMLLYY0FdYAGnxV18xQvUo9O+bQipEGflBVZ8c1tcQKgXhw4ENaXmm1YCCAaMl0
+ugSTMTINK8MHNL8nMR5z/gjhl7Xsp9rOZa40JgXujLGLAZeDC/VSFQ5OAFOWs423
+vtybKmJwFscmhIrQc2VGnAhfujCPyXu0TaELaIFEgE/whsicwtps6UBP45o7IfrJ
+6j+n0w4Otp0M9XRKwNy14M2fnfWKAeNQRmSxnx94Sek1z9uniABsE2AvnaidzKUw
+j82V8FRFb4NVVXTwaLu9r/8ESW8Ly8YPzBAknfiFFWGiuATM4kQavqhcuwE17A+a
+G0wBS9SaJ5bxQemCgS1fKNbo6Nf/XuIoJfoWw7Qx0c8AWVvanKOVGSgXUZD9SJ2m
+IKiGBpSJxpwORkuOqD6/KK8kTSa0ymnPkAHZhztNdvj+yz/kSKaGC3+vD8Kckx12
+XGJBg3d3imbu9z03NcsfCOPraA14bLGoj7P6IaCxO7FAQ94cdn2JmnigYdM3r+gS
+2skfu10RpuhLvMl2zkpm0gK4wok1zUaQFZu71bTyUI9DsX7twtbb6qD4DL2gGOE9
+8tM2FTmKVMGajl718dBr
+=bg6l
+-----END PGP SIGNATURE-----
+
+commit 0d1912303e54ed1b2a371be0bba51c384dd57326
+Author: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date:   Wed Mar 16 08:43:17 2016 -0700
+
+    Linux 4.4.6
+
+diff --git a/Makefile b/Makefile
+index d13322a..87d12b4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,6 +1,6 @@
+ VERSION = 4
+ PATCHLEVEL = 4
+-SUBLEVEL = 5
++SUBLEVEL = 6
+ EXTRAVERSION =
+ NAME = Blurry Fish Butt
+ 

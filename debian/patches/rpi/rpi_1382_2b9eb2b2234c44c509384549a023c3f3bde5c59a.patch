@@ -1,0 +1,63 @@
+commit 2b9eb2b2234c44c509384549a023c3f3bde5c59a
+Author: Nate Dailey <nate.dailey@stratus.com>
+Date:   Mon Feb 29 10:43:58 2016 -0500
+
+    raid1: include bio_end_io_list in nr_queued to prevent freeze_array hang
+    
+    commit ccfc7bf1f09d6190ef86693ddc761d5fe3fa47cb upstream.
+    
+    If raid1d is handling a mix of read and write errors, handle_read_error's
+    call to freeze_array can get stuck.
+    
+    This can happen because, though the bio_end_io_list is initially drained,
+    writes can be added to it via handle_write_finished as the retry_list
+    is processed. These writes contribute to nr_pending but are not included
+    in nr_queued.
+    
+    If a later entry on the retry_list triggers a call to handle_read_error,
+    freeze array hangs waiting for nr_pending == nr_queued+extra. The writes
+    on the bio_end_io_list aren't included in nr_queued so the condition will
+    never be satisfied.
+    
+    To prevent the hang, include bio_end_io_list writes in nr_queued.
+    
+    There's probably a better way to handle decrementing nr_queued, but this
+    seemed like the safest way to avoid breaking surrounding code.
+    
+    I'm happy to supply the script I used to repro this hang.
+    
+    Fixes: 55ce74d4bfe1b(md/raid1: ensure device failure recorded before write request returns.)
+    Signed-off-by: Nate Dailey <nate.dailey@stratus.com>
+    Signed-off-by: Shaohua Li <shli@fb.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
+index c4b9134..515554c 100644
+--- a/drivers/md/raid1.c
++++ b/drivers/md/raid1.c
+@@ -2274,6 +2274,7 @@ static void handle_write_finished(struct r1conf *conf, struct r1bio *r1_bio)
+ 	if (fail) {
+ 		spin_lock_irq(&conf->device_lock);
+ 		list_add(&r1_bio->retry_list, &conf->bio_end_io_list);
++		conf->nr_queued++;
+ 		spin_unlock_irq(&conf->device_lock);
+ 		md_wakeup_thread(conf->mddev->thread);
+ 	} else {
+@@ -2391,8 +2392,10 @@ static void raid1d(struct md_thread *thread)
+ 		LIST_HEAD(tmp);
+ 		spin_lock_irqsave(&conf->device_lock, flags);
+ 		if (!test_bit(MD_CHANGE_PENDING, &mddev->flags)) {
+-			list_add(&tmp, &conf->bio_end_io_list);
+-			list_del_init(&conf->bio_end_io_list);
++			while (!list_empty(&conf->bio_end_io_list)) {
++				list_move(conf->bio_end_io_list.prev, &tmp);
++				conf->nr_queued--;
++			}
+ 		}
+ 		spin_unlock_irqrestore(&conf->device_lock, flags);
+ 		while (!list_empty(&tmp)) {
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1382_2b9eb2b2234c44c509384549a023c3f3bde5c59a.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1382_2b9eb2b2234c44c509384549a023c3f3bde5c59a.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

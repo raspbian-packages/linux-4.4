@@ -1,0 +1,41 @@
+commit 433841fc5958e1ddbd503b579a022fb67defd74b
+Author: Matthias Reichl <hias@horus.com>
+Date:   Sun Oct 11 15:49:51 2015 +0200
+
+    bcm2835-i2s: Eliminate debugfs directory error
+    
+    Code ported from bcm2708-i2s driver in Raspberry Pi tree.
+    
+    RPi commit fd7d7a3dbe9262d16971ef81c234ed28c6499dd7 ("bcm2708:
+    Eliminate i2s debugfs directory error")
+    
+    Qualify the two regmap ranges uses by bcm2708-i2s ('-i2s' and '-clk')
+    to avoid the name clash when registering debugfs entries.
+    
+    Signed-off-by: Matthias Reichl <hias@horus.com>
+
+diff --git a/sound/soc/bcm/bcm2835-i2s.c b/sound/soc/bcm/bcm2835-i2s.c
+index 4ac4e92..aab3df9 100644
+--- a/sound/soc/bcm/bcm2835-i2s.c
++++ b/sound/soc/bcm/bcm2835-i2s.c
+@@ -782,6 +782,7 @@ static const struct regmap_config bcm2835_regmap_config[] = {
+ 		.precious_reg = bcm2835_i2s_precious_reg,
+ 		.volatile_reg = bcm2835_i2s_volatile_reg,
+ 		.cache_type = REGCACHE_RBTREE,
++		.name = "i2s",
+ 	},
+ 	{
+ 		.reg_bits = 32,
+@@ -790,6 +791,7 @@ static const struct regmap_config bcm2835_regmap_config[] = {
+ 		.max_register = BCM2835_CLK_PCMDIV_REG,
+ 		.volatile_reg = bcm2835_clk_volatile_reg,
+ 		.cache_type = REGCACHE_RBTREE,
++		.name = "clk",
+ 	},
+ };
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1016_433841fc5958e1ddbd503b579a022fb67defd74b.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1016_433841fc5958e1ddbd503b579a022fb67defd74b.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
