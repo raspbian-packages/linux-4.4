@@ -1,0 +1,60 @@
+commit e2a75ce0e2b6319150e14401f9822adba7895c9c
+Author: Matthias Reichl <hias@horus.com>
+Date:   Sun Oct 11 15:25:51 2015 +0200
+
+    bcm2835-i2s: setup clock only if CPU is clock master
+    
+    Code ported from bcm2708-i2s driver in Raspberry Pi tree.
+    
+    RPi commit c14827ecdaa36607f6110f9ce8df96e698672191 ("bcm2708: Allow
+    option card devices to be configured via DT")
+    
+    Original work by Zoltan Szenczi, committed to RPi tree by
+    Phil Elwell.
+    
+    Signed-off-by: Matthias Reichl <hias@horus.com>
+
+diff --git a/sound/soc/bcm/bcm2835-i2s.c b/sound/soc/bcm/bcm2835-i2s.c
+index cf60390..4ac4e92 100644
+--- a/sound/soc/bcm/bcm2835-i2s.c
++++ b/sound/soc/bcm/bcm2835-i2s.c
+@@ -411,15 +411,25 @@ static int bcm2835_i2s_hw_params(struct snd_pcm_substream *substream,
+ 		divf = dividend & BCM2835_CLK_DIVF_MASK;
+ 	}
+ 
+-	/* Set clock divider */
+-	regmap_write(dev->clk_regmap, BCM2835_CLK_PCMDIV_REG, BCM2835_CLK_PASSWD
+-			| BCM2835_CLK_DIVI(divi)
+-			| BCM2835_CLK_DIVF(divf));
+-
+-	/* Setup clock, but don't start it yet */
+-	regmap_write(dev->clk_regmap, BCM2835_CLK_PCMCTL_REG, BCM2835_CLK_PASSWD
+-			| BCM2835_CLK_MASH(mash)
+-			| BCM2835_CLK_SRC(clk_src));
++	/* Clock should only be set up here if CPU is clock master */
++	switch (dev->fmt & SND_SOC_DAIFMT_MASTER_MASK) {
++	case SND_SOC_DAIFMT_CBS_CFS:
++	case SND_SOC_DAIFMT_CBS_CFM:
++		/* Set clock divider */
++		regmap_write(dev->clk_regmap, BCM2835_CLK_PCMDIV_REG,
++				  BCM2835_CLK_PASSWD
++				| BCM2835_CLK_DIVI(divi)
++				| BCM2835_CLK_DIVF(divf));
++
++		/* Setup clock, but don't start it yet */
++		regmap_write(dev->clk_regmap, BCM2835_CLK_PCMCTL_REG,
++				  BCM2835_CLK_PASSWD
++				| BCM2835_CLK_MASH(mash)
++				| BCM2835_CLK_SRC(clk_src));
++		break;
++	default:
++		break;
++	}
+ 
+ 	/* Setup the frame format */
+ 	format = BCM2835_I2S_CHEN;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1015_e2a75ce0e2b6319150e14401f9822adba7895c9c.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1015_e2a75ce0e2b6319150e14401f9822adba7895c9c.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

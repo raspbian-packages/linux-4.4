@@ -1,0 +1,100 @@
+commit 7ed2e70e4e414d5c6cea7ef3a60b2b6f853076c0
+Author: Dave Stevenson <6by9@users.noreply.github.com>
+Date:   Fri Apr 1 15:28:46 2016 +0100
+
+    RPi config: Add CONFIG_PWM_PCA9685 for NXP PCA9685 driver over I2C
+    
+    Includes DT overlay to configure it.
+    
+    Signed-off-by: Dave Stevenson <6by9@users.noreply.github.com>
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index 7c4fc30..239c6a1 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -30,6 +30,7 @@ dtbo-$(RPI_DT_OVERLAYS) += hy28b.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c-rtc.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c-gpio.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c-mux-pca9548a.dtbo
++dtbo-$(RPI_DT_OVERLAYS) += i2c-pwm-pca9685a.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c0-bcm2708.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c1-bcm2708.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2s-mmap.dtbo
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 337be4a..9df71a4 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -366,6 +366,12 @@ Load:   dtoverlay=i2c-mux-pca9548a,<param>=<val>
+ Params: addr                    I2C address of PCA9548A (default 0x70)
+ 
+ 
++Name:   i2c-pwm-pca9685a
++Info:   Adds support for an NXP PCA9685A I2C PWM controller on i2c_arm
++Load:   dtoverlay=i2c-pwm-pca9685a,<param>=<val>
++Params: addr                    I2C address of PCA9685A (default 0x40)
++
++
+ Name:   i2c-rtc
+ Info:   Adds support for a number of I2C Real Time Clock devices
+ Load:   dtoverlay=i2c-rtc,<param>=<val>
+diff --git a/arch/arm/boot/dts/overlays/i2c-pwm-pca9685a-overlay.dts b/arch/arm/boot/dts/overlays/i2c-pwm-pca9685a-overlay.dts
+new file mode 100644
+index 0000000..d1ffd23
+--- /dev/null
++++ b/arch/arm/boot/dts/overlays/i2c-pwm-pca9685a-overlay.dts
+@@ -0,0 +1,26 @@
++// Definitions for NXP PCA9685A I2C PWM controller on ARM I2C bus.
++/dts-v1/;
++/plugin/;
++
++/{
++	compatible = "brcm,bcm2708";
++
++	fragment@0 {
++		target = <&i2c_arm>;
++		__overlay__ {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			status = "okay";
++
++			pca: pca@40 {
++				compatible = "nxp,pca9685";
++				#pwm-cells = <2>;
++				reg = <0x40>;
++				status = "okay";
++			};
++		};
++	};
++	__overrides__ {
++		addr = <&pca>,"reg:0";
++	};
++};
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index d509168..299d7be 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -1122,6 +1122,7 @@ CONFIG_MCP320X=m
+ CONFIG_MCP3422=m
+ CONFIG_DHT11=m
+ CONFIG_PWM_BCM2835=m
++CONFIG_PWM_PCA9685=m
+ CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_EXT4_FS=y
+ CONFIG_EXT4_FS_POSIX_ACL=y
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 060ec5f..acda16b 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -1129,6 +1129,7 @@ CONFIG_MCP320X=m
+ CONFIG_MCP3422=m
+ CONFIG_DHT11=m
+ CONFIG_PWM_BCM2835=m
++CONFIG_PWM_PCA9685=m
+ CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_EXT4_FS=y
+ CONFIG_EXT4_FS_POSIX_ACL=y
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1232_7ed2e70e4e414d5c6cea7ef3a60b2b6f853076c0.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1232_7ed2e70e4e414d5c6cea7ef3a60b2b6f853076c0.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

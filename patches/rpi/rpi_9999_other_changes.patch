@@ -1,0 +1,126 @@
+this patch contains changes that the system could not split out into individual patches
+--- linuxtest/arch/arm/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	2016-04-14 19:31:07.423430857 +0000
++++ linuxclean/arch/arm/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	1970-01-01 00:00:00.000000000 +0000
+@@ -1,17 +0,0 @@
+-/*
+- * Copyright (C) 2015 Broadcom Corporation
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-#define BCM2835_AUX_CLOCK_UART		0
+-#define BCM2835_AUX_CLOCK_SPI1		1
+-#define BCM2835_AUX_CLOCK_SPI2		2
+-#define BCM2835_AUX_CLOCK_COUNT		3
+--- linuxtest/arch/arm64/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	2016-04-14 19:31:07.423430857 +0000
++++ linuxclean/arch/arm64/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	1970-01-01 00:00:00.000000000 +0000
+@@ -1,17 +0,0 @@
+-/*
+- * Copyright (C) 2015 Broadcom Corporation
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-#define BCM2835_AUX_CLOCK_UART		0
+-#define BCM2835_AUX_CLOCK_SPI1		1
+-#define BCM2835_AUX_CLOCK_SPI2		2
+-#define BCM2835_AUX_CLOCK_COUNT		3
+--- linuxtest/arch/cris/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	2016-04-14 19:31:07.423430857 +0000
++++ linuxclean/arch/cris/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	1970-01-01 00:00:00.000000000 +0000
+@@ -1,17 +0,0 @@
+-/*
+- * Copyright (C) 2015 Broadcom Corporation
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-#define BCM2835_AUX_CLOCK_UART		0
+-#define BCM2835_AUX_CLOCK_SPI1		1
+-#define BCM2835_AUX_CLOCK_SPI2		2
+-#define BCM2835_AUX_CLOCK_COUNT		3
+--- linuxtest/arch/metag/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	2016-04-14 19:31:07.423430857 +0000
++++ linuxclean/arch/metag/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	1970-01-01 00:00:00.000000000 +0000
+@@ -1,17 +0,0 @@
+-/*
+- * Copyright (C) 2015 Broadcom Corporation
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-#define BCM2835_AUX_CLOCK_UART		0
+-#define BCM2835_AUX_CLOCK_SPI1		1
+-#define BCM2835_AUX_CLOCK_SPI2		2
+-#define BCM2835_AUX_CLOCK_COUNT		3
+--- linuxtest/arch/mips/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	2016-04-14 19:31:07.423430857 +0000
++++ linuxclean/arch/mips/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	1970-01-01 00:00:00.000000000 +0000
+@@ -1,17 +0,0 @@
+-/*
+- * Copyright (C) 2015 Broadcom Corporation
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-#define BCM2835_AUX_CLOCK_UART		0
+-#define BCM2835_AUX_CLOCK_SPI1		1
+-#define BCM2835_AUX_CLOCK_SPI2		2
+-#define BCM2835_AUX_CLOCK_COUNT		3
+--- linuxtest/arch/powerpc/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	2016-04-14 19:31:07.423430857 +0000
++++ linuxclean/arch/powerpc/boot/dts/include/dt-bindings/clock/bcm2835-aux.h	1970-01-01 00:00:00.000000000 +0000
+@@ -1,17 +0,0 @@
+-/*
+- * Copyright (C) 2015 Broadcom Corporation
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-#define BCM2835_AUX_CLOCK_UART		0
+-#define BCM2835_AUX_CLOCK_SPI1		1
+-#define BCM2835_AUX_CLOCK_SPI2		2
+-#define BCM2835_AUX_CLOCK_COUNT		3
+diff -urN test1/999-dummy.txt test2/999-dummy.txt
+--- test1/999-dummy.txt	1970-01-01 00:00:00.000000000 +0000
++++ test2/999-dummy.txt	2013-07-20 14:46:08.000000000 +0000
+@@ -0,0 +1 @@
++This is a dummy file to make sure rpi_999_other_changes.patch is not empty as empty patches confuse quilt.

@@ -1,0 +1,48 @@
+commit c671b8fada8fe75583e25cd93f9a414c7024e613
+Author: Andrew Litt <ajlitt@splunge.net>
+Date:   Mon Jan 11 07:55:54 2016 +0000
+
+    SDIO-overlay: add bus_width parameter
+    
+    Allow setting of the SDIO bus width capability of the bcm2835-mmc
+    host.  This is helpful when only a 1 bit wide bus is connected
+    between host and device but both host and device advertise 4 bit
+    mode.
+
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 1c6b000..34a1b7f 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -634,6 +634,8 @@ Params: overclock_50             Clock (in MHz) to use when the MMC framework
+         poll_once                Disable SDIO-device polling every second
+                                  (default on: polling once at boot-time)
+ 
++        bus_width                Set the SDIO host bus width (default 4 bits)
++
+ 
+ Name:   sdtweak
+ Info:   Tunes the bcm2835-sdhost SD/MMC driver
+diff --git a/arch/arm/boot/dts/overlays/sdio-overlay.dts b/arch/arm/boot/dts/overlays/sdio-overlay.dts
+index afc8742..7935e7a 100644
+--- a/arch/arm/boot/dts/overlays/sdio-overlay.dts
++++ b/arch/arm/boot/dts/overlays/sdio-overlay.dts
+@@ -11,6 +11,7 @@
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&sdio_pins>;
+ 			non-removable;
++			bus-width = <4>;
+ 			status = "okay";
+ 		};
+ 	};
+@@ -28,5 +29,6 @@
+ 
+ 	__overrides__ {
+ 		poll_once = <&sdio_mmc>,"non-removable?";
++		bus_width = <&sdio_mmc>,"bus-width:0";
+ 	};
+ };
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1124_c671b8fada8fe75583e25cd93f9a414c7024e613.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1124_c671b8fada8fe75583e25cd93f9a414c7024e613.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

@@ -1,0 +1,37 @@
+commit ae8168541087b26f946f31555e977c146aba637a
+Author: Takashi Iwai <tiwai@suse.de>
+Date:   Thu Mar 10 20:56:20 2016 +0100
+
+    ALSA: pcm: Avoid "BUG:" string for warnings again
+    
+    commit 0ab1ace856205d10cbc1924b2d931c01ffd216a6 upstream.
+    
+    The commit [d507941beb1e: ALSA: pcm: Correct PCM BUG error message]
+    made the warning prefix back to "BUG:" due to its previous wrong
+    prefix.  But a kernel message containing "BUG:" seems taken as an Oops
+    message wrongly by some brain-dead daemons, and it annoys users in the
+    end.  Instead of teaching daemons, change the string again to a more
+    reasonable one.
+    
+    Fixes: 507941beb1e ('ALSA: pcm: Correct PCM BUG error message')
+    Signed-off-by: Takashi Iwai <tiwai@suse.de>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/sound/core/pcm_lib.c b/sound/core/pcm_lib.c
+index 6b5a811..3a9b66c 100644
+--- a/sound/core/pcm_lib.c
++++ b/sound/core/pcm_lib.c
+@@ -322,7 +322,7 @@ static int snd_pcm_update_hw_ptr0(struct snd_pcm_substream *substream,
+ 			char name[16];
+ 			snd_pcm_debug_name(substream, name, sizeof(name));
+ 			pcm_err(substream->pcm,
+-				"BUG: %s, pos = %ld, buffer size = %ld, period size = %ld\n",
++				"invalid position: %s, pos = %ld, buffer size = %ld, period size = %ld\n",
+ 				name, pos, runtime->buffer_size,
+ 				runtime->period_size);
+ 		}
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1351_ae8168541087b26f946f31555e977c146aba637a.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1351_ae8168541087b26f946f31555e977c146aba637a.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
