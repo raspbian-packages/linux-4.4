@@ -1,0 +1,43 @@
+commit a42c9e4f1b3751743dd58773d45d2eb3ee4ca5ac
+Author: Jan Beulich <JBeulich@suse.com>
+Date:   Mon Jan 25 09:45:47 2016 -0700
+
+    scripts/kconfig: allow building with make 3.80 again
+    
+    commit 42f9d3c6888bceef6dc7ba72c77acf47347dcf05 upstream.
+    
+    Documentation/Changes still lists this as the minimal required version,
+    so it ought to remain usable for the time being.
+    
+    Fixes: d2036f30cf ("scripts/kconfig/Makefile: Allow KBUILD_DEFCONFIG to be a target")
+    Signed-off-by: Jan Beulich <jbeulich@suse.com>
+    Cc: Michael Ellerman <mpe@ellerman.id.au>
+    Signed-off-by: Michal Marek <mmarek@suse.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/scripts/kconfig/Makefile b/scripts/kconfig/Makefile
+index d79cba4..ebced77 100644
+--- a/scripts/kconfig/Makefile
++++ b/scripts/kconfig/Makefile
+@@ -96,13 +96,15 @@ savedefconfig: $(obj)/conf
+ defconfig: $(obj)/conf
+ ifeq ($(KBUILD_DEFCONFIG),)
+ 	$< $(silent) --defconfig $(Kconfig)
+-else ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG)),)
++else
++ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG)),)
+ 	@$(kecho) "*** Default configuration is based on '$(KBUILD_DEFCONFIG)'"
+ 	$(Q)$< $(silent) --defconfig=arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG) $(Kconfig)
+ else
+ 	@$(kecho) "*** Default configuration is based on target '$(KBUILD_DEFCONFIG)'"
+ 	$(Q)$(MAKE) -f $(srctree)/Makefile $(KBUILD_DEFCONFIG)
+ endif
++endif
+ 
+ %_defconfig: $(obj)/conf
+ 	$(Q)$< $(silent) --defconfig=arch/$(SRCARCH)/configs/$@ $(Kconfig)
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1406_a42c9e4f1b3751743dd58773d45d2eb3ee4ca5ac.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1406_a42c9e4f1b3751743dd58773d45d2eb3ee4ca5ac.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

@@ -1,0 +1,29 @@
+commit 5e3168449aa5a105df7043bfeb425b4dd929dea6
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Tue Feb 9 09:52:13 2016 +0000
+
+    pinctrl-bcm2835: Fix cut-and-paste error in "pull" parsing
+    
+    The DT bindings for pinctrl-bcm2835 allow both the function and pull
+    to contain either one entry or one per pin. However, an error in the
+    DT parsing can cause failures if the number of pulls differs from the
+    number of functions.
+
+diff --git a/drivers/pinctrl/bcm/pinctrl-bcm2835.c b/drivers/pinctrl/bcm/pinctrl-bcm2835.c
+index 640e3b0..32f779e 100644
+--- a/drivers/pinctrl/bcm/pinctrl-bcm2835.c
++++ b/drivers/pinctrl/bcm/pinctrl-bcm2835.c
+@@ -802,7 +802,7 @@ static int bcm2835_pctl_dt_node_to_map(struct pinctrl_dev *pctldev,
+ 		}
+ 		if (num_pulls) {
+ 			err = of_property_read_u32_index(np, "brcm,pull",
+-					(num_funcs > 1) ? i : 0, &pull);
++					(num_pulls > 1) ? i : 0, &pull);
+ 			if (err)
+ 				goto out;
+ 			err = bcm2835_pctl_dt_node_to_map_pull(pc, np, pin,
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1142_5e3168449aa5a105df7043bfeb425b4dd929dea6.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1142_5e3168449aa5a105df7043bfeb425b4dd929dea6.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

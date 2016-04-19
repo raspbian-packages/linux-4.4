@@ -1,0 +1,37 @@
+commit 583aacb1f69b733e6808625fbc44da8f499c9bfb
+Author: Peter Hurley <peter@hurleysoftware.com>
+Date:   Sun Jan 10 20:36:12 2016 -0800
+
+    tty: Fix GPF in flush_to_ldisc(), part 2
+    
+    commit f33798deecbd59a2955f40ac0ae2bc7dff54c069 upstream.
+    
+    commit 9ce119f318ba ("tty: Fix GPF in flush_to_ldisc()") fixed a
+    GPF caused by a line discipline which does not define a receive_buf()
+    method.
+    
+    However, the vt driver (and speakup driver also) pushes selection
+    data directly to the line discipline receive_buf() method via
+    tty_ldisc_receive_buf(). Fix the same problem in tty_ldisc_receive_buf().
+    
+    Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/include/linux/tty.h b/include/linux/tty.h
+index 6b6e811..3bf03b6 100644
+--- a/include/linux/tty.h
++++ b/include/linux/tty.h
+@@ -594,7 +594,7 @@ static inline int tty_ldisc_receive_buf(struct tty_ldisc *ld, unsigned char *p,
+ 		count = ld->ops->receive_buf2(ld->tty, p, f, count);
+ 	else {
+ 		count = min_t(int, count, ld->tty->receive_room);
+-		if (count)
++		if (count && ld->ops->receive_buf)
+ 			ld->ops->receive_buf(ld->tty, p, f, count);
+ 	}
+ 	return count;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1333_583aacb1f69b733e6808625fbc44da8f499c9bfb.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1333_583aacb1f69b733e6808625fbc44da8f499c9bfb.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

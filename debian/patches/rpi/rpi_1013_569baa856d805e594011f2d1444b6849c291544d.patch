@@ -1,0 +1,70 @@
+commit 569baa856d805e594011f2d1444b6849c291544d
+Author: Matthias Reichl <hias@horus.com>
+Date:   Sun Oct 11 16:44:05 2015 +0200
+
+    bcm2835-i2s: get base address for DMA from devicetree
+    
+    Code copied from spi-bcm2835. Get physical address from devicetree
+    instead of using hardcoded constant.
+    
+    Signed-off-by: Matthias Reichl <hias@horus.com>
+
+diff --git a/sound/soc/bcm/bcm2835-i2s.c b/sound/soc/bcm/bcm2835-i2s.c
+index 8c435be..0bc4f47 100644
+--- a/sound/soc/bcm/bcm2835-i2s.c
++++ b/sound/soc/bcm/bcm2835-i2s.c
+@@ -38,6 +38,7 @@
+ #include <linux/delay.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
++#include <linux/of_address.h>
+ 
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+@@ -158,10 +159,6 @@ static const unsigned int bcm2835_clk_freq[BCM2835_CLK_SRC_HDMI+1] = {
+ #define BCM2835_I2S_INT_RXR		BIT(1)
+ #define BCM2835_I2S_INT_TXW		BIT(0)
+ 
+-/* I2S DMA interface */
+-/* FIXME: Needs IOMMU support */
+-#define BCM2835_VCMMU_SHIFT		(0x7E000000 - 0x20000000)
+-
+ /* General device struct */
+ struct bcm2835_i2s_dev {
+ 	struct device				*dev;
+@@ -791,6 +788,15 @@ static int bcm2835_i2s_probe(struct platform_device *pdev)
+ 	int ret;
+ 	struct regmap *regmap[2];
+ 	struct resource *mem[2];
++	const __be32 *addr;
++	dma_addr_t dma_reg_base;
++
++	addr = of_get_address(pdev->dev.of_node, 0, NULL, NULL);
++	if (!addr) {
++		dev_err(&pdev->dev, "could not get DMA-register address\n");
++		return -ENODEV;
++	}
++	dma_reg_base = be32_to_cpup(addr);
+ 
+ 	/* Request both ioareas */
+ 	for (i = 0; i <= 1; i++) {
+@@ -817,12 +823,10 @@ static int bcm2835_i2s_probe(struct platform_device *pdev)
+ 
+ 	/* Set the DMA address */
+ 	dev->dma_data[SNDRV_PCM_STREAM_PLAYBACK].addr =
+-		(dma_addr_t)mem[0]->start + BCM2835_I2S_FIFO_A_REG
+-					  + BCM2835_VCMMU_SHIFT;
++		dma_reg_base + BCM2835_I2S_FIFO_A_REG;
+ 
+ 	dev->dma_data[SNDRV_PCM_STREAM_CAPTURE].addr =
+-		(dma_addr_t)mem[0]->start + BCM2835_I2S_FIFO_A_REG
+-					  + BCM2835_VCMMU_SHIFT;
++		dma_reg_base + BCM2835_I2S_FIFO_A_REG;
+ 
+ 	/* Set the bus width */
+ 	dev->dma_data[SNDRV_PCM_STREAM_PLAYBACK].addr_width =
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1013_569baa856d805e594011f2d1444b6849c291544d.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1013_569baa856d805e594011f2d1444b6849c291544d.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

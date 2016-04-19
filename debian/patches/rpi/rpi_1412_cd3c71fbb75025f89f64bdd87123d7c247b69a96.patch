@@ -1,0 +1,38 @@
+commit cd3c71fbb75025f89f64bdd87123d7c247b69a96
+Author: Russell King <rmk+kernel@arm.linux.org.uk>
+Date:   Tue Jan 26 13:40:58 2016 +0000
+
+    mmc: sdhci: fix data timeout (part 1)
+    
+    commit fafcfda9e78cae8796d1799f14e6457790797555 upstream.
+    
+    The data timeout gives the minimum amount of time that should be
+    waited before timing out if no data is received from the card.
+    Simply dividing the nanosecond part by 1000 does not give this
+    required guarantee, since such a division rounds down.  Use
+    DIV_ROUND_UP() to give the desired timeout.
+    
+    Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+    Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+    Tested-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+    Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index 8814eb6..14e118f 100644
+--- a/drivers/mmc/host/sdhci.c
++++ b/drivers/mmc/host/sdhci.c
+@@ -666,7 +666,7 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
+ 	if (!data)
+ 		target_timeout = cmd->busy_timeout * 1000;
+ 	else {
+-		target_timeout = data->timeout_ns / 1000;
++		target_timeout = DIV_ROUND_UP(data->timeout_ns, 1000);
+ 		if (host->clock)
+ 			target_timeout += data->timeout_clks / host->clock;
+ 	}
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1412_cd3c71fbb75025f89f64bdd87123d7c247b69a96.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1412_cd3c71fbb75025f89f64bdd87123d7c247b69a96.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
