@@ -1,0 +1,45 @@
+commit 951822beba268f76af9463c69095284df20311f6
+Author: Oliver Neukum <oneukum@suse.com>
+Date:   Wed Feb 10 11:33:18 2016 +0100
+
+    usb: retry reset if a device times out
+    
+    commit 264904ccc33c604d4b3141bbd33808152dfac45b upstream.
+    
+    Some devices I got show an inability to operate right after
+    power on if they are already connected. They are beyond recovery
+    if the descriptors are requested multiple times. So in case of
+    a timeout we rather bail early and reset again. But it must be
+    done only on the first loop lest we get into a reset/time out
+    spiral that can be overcome with a retry.
+    
+    This patch is a rework of a patch that fell through the cracks.
+    http://www.spinics.net/lists/linux-usb/msg103263.html
+    
+    Signed-off-by: Oliver Neukum <oneukum@suse.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index 1560f3f..a44db86 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -4426,7 +4426,13 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
+ 						r = -EPROTO;
+ 					break;
+ 				}
+-				if (r == 0)
++				/*
++				 * Some devices time out if they are powered on
++				 * when already connected. They need a second
++				 * reset. But only on the first attempt,
++				 * lest we get into a time out/reset loop
++				 */
++				if (r == 0  || (r == -ETIMEDOUT && j == 0))
+ 					break;
+ 			}
+ 			udev->descriptor.bMaxPacketSize0 =
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1290_951822beba268f76af9463c69095284df20311f6.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1290_951822beba268f76af9463c69095284df20311f6.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

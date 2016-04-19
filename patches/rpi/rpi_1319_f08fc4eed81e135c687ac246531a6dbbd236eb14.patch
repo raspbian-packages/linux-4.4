@@ -1,0 +1,35 @@
+commit f08fc4eed81e135c687ac246531a6dbbd236eb14
+Author: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Date:   Thu Mar 17 10:47:10 2016 +0100
+
+    crypto: marvell/cesa - forward devm_ioremap_resource() error code
+    
+    commit dfe97ad30e8c038261663a18b9e04b8b5bc07bea upstream.
+    
+    Forward devm_ioremap_resource() error code instead of returning
+    -ENOMEM.
+    
+    Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+    Reported-by: Russell King - ARM Linux <linux@arm.linux.org.uk>
+    Fixes: f63601fd616a ("crypto: marvell/cesa - add a new driver for Marvell's CESA")
+    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/crypto/marvell/cesa.c b/drivers/crypto/marvell/cesa.c
+index c0656e7..80239ae 100644
+--- a/drivers/crypto/marvell/cesa.c
++++ b/drivers/crypto/marvell/cesa.c
+@@ -420,7 +420,7 @@ static int mv_cesa_probe(struct platform_device *pdev)
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "regs");
+ 	cesa->regs = devm_ioremap_resource(dev, res);
+ 	if (IS_ERR(cesa->regs))
+-		return -ENOMEM;
++		return PTR_ERR(cesa->regs);
+ 
+ 	ret = mv_cesa_dev_dma_init(cesa);
+ 	if (ret)
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1319_f08fc4eed81e135c687ac246531a6dbbd236eb14.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1319_f08fc4eed81e135c687ac246531a6dbbd236eb14.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

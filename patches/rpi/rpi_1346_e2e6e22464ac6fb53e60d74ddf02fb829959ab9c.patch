@@ -1,0 +1,105 @@
+commit e2e6e22464ac6fb53e60d74ddf02fb829959ab9c
+Author: Asai Thambi SP <asamymuthupa@micron.com>
+Date:   Wed Feb 24 21:18:10 2016 -0800
+
+    mtip32xx: Handle safe removal during IO
+    
+    commit 51c6570eb922146470c2fe660c34585414679bd6 upstream.
+    
+    Flush inflight IOs using fsync_bdev() when the device is safely
+    removed. Also, block further IOs in device open function.
+    
+    Signed-off-by: Selvan Mani <smani@micron.com>
+    Signed-off-by: Rajesh Kumar Sambandam <rsambandam@micron.com>
+    Signed-off-by: Asai Thambi S P <asamymuthupa@micron.com>
+    Signed-off-by: Jens Axboe <axboe@fb.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/block/mtip32xx/mtip32xx.c b/drivers/block/mtip32xx/mtip32xx.c
+index 47d96bd..cda3efe 100644
+--- a/drivers/block/mtip32xx/mtip32xx.c
++++ b/drivers/block/mtip32xx/mtip32xx.c
+@@ -3602,6 +3602,28 @@ static int mtip_block_getgeo(struct block_device *dev,
+ 	return 0;
+ }
+ 
++static int mtip_block_open(struct block_device *dev, fmode_t mode)
++{
++	struct driver_data *dd;
++
++	if (dev && dev->bd_disk) {
++		dd = (struct driver_data *) dev->bd_disk->private_data;
++
++		if (dd) {
++			if (test_bit(MTIP_DDF_REMOVAL_BIT,
++							&dd->dd_flag)) {
++				return -ENODEV;
++			}
++			return 0;
++		}
++	}
++	return -ENODEV;
++}
++
++void mtip_block_release(struct gendisk *disk, fmode_t mode)
++{
++}
++
+ /*
+  * Block device operation function.
+  *
+@@ -3609,6 +3631,8 @@ static int mtip_block_getgeo(struct block_device *dev,
+  * layer.
+  */
+ static const struct block_device_operations mtip_block_ops = {
++	.open		= mtip_block_open,
++	.release	= mtip_block_release,
+ 	.ioctl		= mtip_block_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= mtip_block_compat_ioctl,
+@@ -4434,7 +4458,7 @@ static void mtip_pci_remove(struct pci_dev *pdev)
+ 	struct driver_data *dd = pci_get_drvdata(pdev);
+ 	unsigned long flags, to;
+ 
+-	set_bit(MTIP_DDF_REMOVE_PENDING_BIT, &dd->dd_flag);
++	set_bit(MTIP_DDF_REMOVAL_BIT, &dd->dd_flag);
+ 
+ 	spin_lock_irqsave(&dev_lock, flags);
+ 	list_del_init(&dd->online_list);
+@@ -4451,12 +4475,18 @@ static void mtip_pci_remove(struct pci_dev *pdev)
+ 	} while (atomic_read(&dd->irq_workers_active) != 0 &&
+ 		time_before(jiffies, to));
+ 
++	fsync_bdev(dd->bdev);
++
+ 	if (atomic_read(&dd->irq_workers_active) != 0) {
+ 		dev_warn(&dd->pdev->dev,
+ 			"Completion workers still active!\n");
+ 	}
+ 
+-	blk_mq_stop_hw_queues(dd->queue);
++	if (dd->sr)
++		blk_mq_stop_hw_queues(dd->queue);
++
++	set_bit(MTIP_DDF_REMOVE_PENDING_BIT, &dd->dd_flag);
++
+ 	/* Clean up the block layer. */
+ 	mtip_block_remove(dd);
+ 
+diff --git a/drivers/block/mtip32xx/mtip32xx.h b/drivers/block/mtip32xx/mtip32xx.h
+index 8635239..50af742 100644
+--- a/drivers/block/mtip32xx/mtip32xx.h
++++ b/drivers/block/mtip32xx/mtip32xx.h
+@@ -158,6 +158,7 @@ enum {
+ 	MTIP_DDF_RESUME_BIT         = 6,
+ 	MTIP_DDF_INIT_DONE_BIT      = 7,
+ 	MTIP_DDF_REBUILD_FAILED_BIT = 8,
++	MTIP_DDF_REMOVAL_BIT	    = 9,
+ 
+ 	MTIP_DDF_STOP_IO      = ((1 << MTIP_DDF_REMOVE_PENDING_BIT) |
+ 				(1 << MTIP_DDF_SEC_LOCK_BIT) |
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1346_e2e6e22464ac6fb53e60d74ddf02fb829959ab9c.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1346_e2e6e22464ac6fb53e60d74ddf02fb829959ab9c.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

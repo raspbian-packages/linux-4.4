@@ -1,0 +1,37 @@
+commit ed12031e713305ef7836d5672ae2ab4e1446ce08
+Author: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Date:   Thu Mar 17 17:12:54 2016 -0700
+
+    Input: synaptics - handle spurious release of trackstick buttons, again
+    
+    commit 82be788c96ed5978d3cb4a00079e26b981a3df3f upstream.
+    
+    Looks like the fimware 8.2 still has the extra buttons spurious release
+    bug.
+    
+    Link: https://bugzilla.kernel.org/show_bug.cgi?id=114321
+    Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+    Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/input/mouse/synaptics.c b/drivers/input/mouse/synaptics.c
+index 6025eb4..a41d832 100644
+--- a/drivers/input/mouse/synaptics.c
++++ b/drivers/input/mouse/synaptics.c
+@@ -862,8 +862,9 @@ static void synaptics_report_ext_buttons(struct psmouse *psmouse,
+ 	if (!SYN_CAP_MULTI_BUTTON_NO(priv->ext_cap))
+ 		return;
+ 
+-	/* Bug in FW 8.1, buttons are reported only when ExtBit is 1 */
+-	if (SYN_ID_FULL(priv->identity) == 0x801 &&
++	/* Bug in FW 8.1 & 8.2, buttons are reported only when ExtBit is 1 */
++	if ((SYN_ID_FULL(priv->identity) == 0x801 ||
++	     SYN_ID_FULL(priv->identity) == 0x802) &&
+ 	    !((psmouse->packet[0] ^ psmouse->packet[3]) & 0x02))
+ 		return;
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1433_ed12031e713305ef7836d5672ae2ab4e1446ce08.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1433_ed12031e713305ef7836d5672ae2ab4e1446ce08.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
