@@ -1,0 +1,33 @@
+commit 0a10eaa1a91a738523ce2f9e55cd9f6f655e31f1
+Author: Julia Lawall <Julia.Lawall@lip6.fr>
+Date:   Thu Feb 18 00:16:14 2016 +0100
+
+    scripts/coccinelle: modernize &
+    
+    commit 1b669e713f277a4d4b3cec84e13d16544ac8286d upstream.
+    
+    & is no longer allowed in column 0, since Coccinelle 1.0.4.
+    
+    Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+    Tested-by: Nishanth Menon <nm@ti.com>
+    Signed-off-by: Michal Marek <mmarek@suse.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/scripts/coccinelle/iterators/use_after_iter.cocci b/scripts/coccinelle/iterators/use_after_iter.cocci
+index f085f59..ce8cc9c 100644
+--- a/scripts/coccinelle/iterators/use_after_iter.cocci
++++ b/scripts/coccinelle/iterators/use_after_iter.cocci
+@@ -123,7 +123,7 @@ list_remove_head(x,c,...)
+ |
+ sizeof(<+...c...+>)
+ |
+-&c->member
++ &c->member
+ |
+ c = E
+ |
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1405_0a10eaa1a91a738523ce2f9e55cd9f6f655e31f1.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1405_0a10eaa1a91a738523ce2f9e55cd9f6f655e31f1.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

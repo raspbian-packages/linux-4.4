@@ -1,0 +1,36 @@
+commit 263b0af7cc419a6f5254269a30e9784b5476f433
+Author: Vladimir Zapolskiy <vz@mleia.com>
+Date:   Wed Mar 23 00:38:43 2016 +0200
+
+    staging: android: ion_test: fix check of platform_device_register_simple() error code
+    
+    commit ccbc2a9e7878ff09bcaed4893c2a2d3adbb797e2 upstream.
+    
+    On error platform_device_register_simple() returns ERR_PTR() value,
+    check for NULL always fails. The change corrects the check itself and
+    propagates the returned error upwards.
+    
+    Fixes: 81fb0b901397 ("staging: android: ion_test: unregister the platform device")
+    Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/staging/android/ion/ion_test.c b/drivers/staging/android/ion/ion_test.c
+index b8dcf5a..58d4689 100644
+--- a/drivers/staging/android/ion/ion_test.c
++++ b/drivers/staging/android/ion/ion_test.c
+@@ -285,8 +285,8 @@ static int __init ion_test_init(void)
+ {
+ 	ion_test_pdev = platform_device_register_simple("ion-test",
+ 							-1, NULL, 0);
+-	if (!ion_test_pdev)
+-		return -ENODEV;
++	if (IS_ERR(ion_test_pdev))
++		return PTR_ERR(ion_test_pdev);
+ 
+ 	return platform_driver_probe(&ion_test_platform_driver, ion_test_probe);
+ }
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1331_263b0af7cc419a6f5254269a30e9784b5476f433.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1331_263b0af7cc419a6f5254269a30e9784b5476f433.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

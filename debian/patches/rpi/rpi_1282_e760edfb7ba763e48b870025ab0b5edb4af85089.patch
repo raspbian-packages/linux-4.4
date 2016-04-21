@@ -1,0 +1,35 @@
+commit e760edfb7ba763e48b870025ab0b5edb4af85089
+Author: Maurizio Lombardi <mlombard@redhat.com>
+Date:   Fri Mar 4 10:41:49 2016 +0100
+
+    be2iscsi: set the boot_kset pointer to NULL in case of failure
+    
+    commit 84bd64993f916bcf86270c67686ecf4cea7b8933 upstream.
+    
+    In beiscsi_setup_boot_info(), the boot_kset pointer should be set to
+    NULL in case of failure otherwise an invalid pointer dereference may
+    occur later.
+    
+    Signed-off-by: Maurizio Lombardi <mlombard@redhat.com>
+    Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+    Reviewed-by: Jitendra Bhivare <jitendra.bhivare@broadcom.com>
+    Signed-off-by: Martin K. Petersen <martin.petersen@oracle.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/scsi/be2iscsi/be_main.c b/drivers/scsi/be2iscsi/be_main.c
+index fe0c514..758f76e 100644
+--- a/drivers/scsi/be2iscsi/be_main.c
++++ b/drivers/scsi/be2iscsi/be_main.c
+@@ -4470,6 +4470,7 @@ put_shost:
+ 	scsi_host_put(phba->shost);
+ free_kset:
+ 	iscsi_boot_destroy_kset(phba->boot_kset);
++	phba->boot_kset = NULL;
+ 	return -ENOMEM;
+ }
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1282_e760edfb7ba763e48b870025ab0b5edb4af85089.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1282_e760edfb7ba763e48b870025ab0b5edb4af85089.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
