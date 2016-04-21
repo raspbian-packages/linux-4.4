@@ -1,0 +1,64 @@
+commit 4d073cfdf7f685628485d9692623c668b173bb60
+Author: Takashi Iwai <tiwai@suse.de>
+Date:   Tue Mar 15 12:14:49 2016 +0100
+
+    ALSA: usb-audio: Minor code cleanup in create_fixed_stream_quirk()
+    
+    commit 902eb7fd1e4af3ac69b9b30f8373f118c92b9729 upstream.
+    
+    Just a minor code cleanup: unify the error paths.
+    
+    Signed-off-by: Takashi Iwai <tiwai@suse.de>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/sound/usb/quirks.c b/sound/usb/quirks.c
+index 2967242..f9263de 100644
+--- a/sound/usb/quirks.c
++++ b/sound/usb/quirks.c
+@@ -167,23 +167,18 @@ static int create_fixed_stream_quirk(struct snd_usb_audio *chip,
+ 	stream = (fp->endpoint & USB_DIR_IN)
+ 		? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
+ 	err = snd_usb_add_audio_stream(chip, stream, fp);
+-	if (err < 0) {
+-		kfree(fp);
+-		kfree(rate_table);
+-		return err;
+-	}
++	if (err < 0)
++		goto error;
+ 	if (fp->iface != get_iface_desc(&iface->altsetting[0])->bInterfaceNumber ||
+ 	    fp->altset_idx >= iface->num_altsetting) {
+-		kfree(fp);
+-		kfree(rate_table);
+-		return -EINVAL;
++		err = -EINVAL;
++		goto error;
+ 	}
+ 	alts = &iface->altsetting[fp->altset_idx];
+ 	altsd = get_iface_desc(alts);
+ 	if (altsd->bNumEndpoints < 1) {
+-		kfree(fp);
+-		kfree(rate_table);
+-		return -EINVAL;
++		err = -EINVAL;
++		goto error;
+ 	}
+ 
+ 	fp->protocol = altsd->bInterfaceProtocol;
+@@ -196,6 +191,11 @@ static int create_fixed_stream_quirk(struct snd_usb_audio *chip,
+ 	snd_usb_init_pitch(chip, fp->iface, alts, fp);
+ 	snd_usb_init_sample_rate(chip, fp->iface, alts, fp, fp->rate_max);
+ 	return 0;
++
++ error:
++	kfree(fp);
++	kfree(rate_table);
++	return err;
+ }
+ 
+ static int create_auto_pcm_quirk(struct snd_usb_audio *chip,
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1307_4d073cfdf7f685628485d9692623c668b173bb60.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1307_4d073cfdf7f685628485d9692623c668b173bb60.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

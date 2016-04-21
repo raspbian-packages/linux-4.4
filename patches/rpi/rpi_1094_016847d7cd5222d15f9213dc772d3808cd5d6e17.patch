@@ -1,0 +1,68 @@
+commit 016847d7cd5222d15f9213dc772d3808cd5d6e17
+Author: Eric Anholt <eric@anholt.net>
+Date:   Mon Oct 19 08:44:35 2015 -0700
+
+    drm/vc4: Drop struct_mutex around CL validation.
+    
+    We were using it so that we could make sure that shader validation
+    state didn't change while we were validating, but now shader
+    validation state is immutable.  The bcl/rcl generation doesn't do any
+    other BO dereferencing, and seems to have no other global state
+    dependency not covered by job_lock / bo_lock.
+    
+    Fixes a lock order reversal between mmap_sem and struct_mutex.
+    
+    Signed-off-by: Eric Anholt <eric@anholt.net>
+
+diff --git a/drivers/gpu/drm/vc4/vc4_gem.c b/drivers/gpu/drm/vc4/vc4_gem.c
+index b1853b2..32f375a 100644
+--- a/drivers/gpu/drm/vc4/vc4_gem.c
++++ b/drivers/gpu/drm/vc4/vc4_gem.c
+@@ -244,13 +244,15 @@ static void
+ vc4_queue_submit(struct drm_device *dev, struct vc4_exec_info *exec)
+ {
+ 	struct vc4_dev *vc4 = to_vc4_dev(dev);
+-	uint64_t seqno = ++vc4->emit_seqno;
++	uint64_t seqno;
+ 	unsigned long irqflags;
+ 
++	spin_lock_irqsave(&vc4->job_lock, irqflags);
++
++	seqno = ++vc4->emit_seqno;
+ 	exec->seqno = seqno;
+ 	vc4_update_bo_seqnos(exec, seqno);
+ 
+-	spin_lock_irqsave(&vc4->job_lock, irqflags);
+ 	list_add_tail(&exec->head, &vc4->job_list);
+ 
+ 	/* If no job was executing, kick ours off.  Otherwise, it'll
+@@ -608,8 +610,6 @@ vc4_submit_cl_ioctl(struct drm_device *dev, void *data,
+ 	exec->args = args;
+ 	INIT_LIST_HEAD(&exec->unref_list);
+ 
+-	mutex_lock(&dev->struct_mutex);
+-
+ 	ret = vc4_cl_lookup_bos(dev, file_priv, exec);
+ 	if (ret)
+ 		goto fail;
+@@ -636,15 +636,11 @@ vc4_submit_cl_ioctl(struct drm_device *dev, void *data,
+ 	/* Return the seqno for our job. */
+ 	args->seqno = vc4->emit_seqno;
+ 
+-	mutex_unlock(&dev->struct_mutex);
+-
+ 	return 0;
+ 
+ fail:
+ 	vc4_complete_exec(exec);
+ 
+-	mutex_unlock(&dev->struct_mutex);
+-
+ 	return ret;
+ }
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1094_016847d7cd5222d15f9213dc772d3808cd5d6e17.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1094_016847d7cd5222d15f9213dc772d3808cd5d6e17.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

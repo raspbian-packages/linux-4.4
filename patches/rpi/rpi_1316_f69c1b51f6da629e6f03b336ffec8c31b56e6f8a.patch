@@ -1,0 +1,45 @@
+commit f69c1b51f6da629e6f03b336ffec8c31b56e6f8a
+Author: Dan Carpenter <dan.carpenter@oracle.com>
+Date:   Sat Jan 30 17:38:28 2016 +0300
+
+    crypto: keywrap - memzero the correct memory
+    
+    commit 2b8b28fd232233c22fb61009dd8b0587390d2875 upstream.
+    
+    We're clearing the wrong memory.  The memory corruption is likely
+    harmless because we weren't going to use that stack memory again but not
+    zeroing is a potential information leak.
+    
+    Fixes: e28facde3c39 ('crypto: keywrap - add key wrapping block chaining mode')
+    Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+    Acked-by: Stephan Mueller <smueller@chronox.de>
+    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/crypto/keywrap.c b/crypto/keywrap.c
+index b1d106c..72014f9 100644
+--- a/crypto/keywrap.c
++++ b/crypto/keywrap.c
+@@ -212,7 +212,7 @@ static int crypto_kw_decrypt(struct blkcipher_desc *desc,
+ 			  SEMIBSIZE))
+ 		ret = -EBADMSG;
+ 
+-	memzero_explicit(&block, sizeof(struct crypto_kw_block));
++	memzero_explicit(block, sizeof(struct crypto_kw_block));
+ 
+ 	return ret;
+ }
+@@ -297,7 +297,7 @@ static int crypto_kw_encrypt(struct blkcipher_desc *desc,
+ 	/* establish the IV for the caller to pick up */
+ 	memcpy(desc->info, block->A, SEMIBSIZE);
+ 
+-	memzero_explicit(&block, sizeof(struct crypto_kw_block));
++	memzero_explicit(block, sizeof(struct crypto_kw_block));
+ 
+ 	return 0;
+ }
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1316_f69c1b51f6da629e6f03b336ffec8c31b56e6f8a.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1316_f69c1b51f6da629e6f03b336ffec8c31b56e6f8a.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
