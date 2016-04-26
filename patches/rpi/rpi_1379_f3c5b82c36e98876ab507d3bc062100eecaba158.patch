@@ -1,0 +1,46 @@
+commit f3c5b82c36e98876ab507d3bc062100eecaba158
+Author: Vineet Gupta <vgupta@synopsys.com>
+Date:   Tue Mar 8 19:31:24 2016 +0530
+
+    ARC: bitops: Remove non relevant comments
+    
+    commit 2a41b6dc28dc71c1a3f1622612a26edc58f7561e upstream.
+    
+    commit 80f420842ff42 removed the ARC bitops microoptimization but failed
+    to prune the comments to same effect
+    
+    Fixes: 80f420842ff42 ("ARC: Make ARC bitops "safer" (add anti-optimization)")
+    Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/arc/include/asm/bitops.h b/arch/arc/include/asm/bitops.h
+index 57c1f33..0352fb8 100644
+--- a/arch/arc/include/asm/bitops.h
++++ b/arch/arc/include/asm/bitops.h
+@@ -35,21 +35,6 @@ static inline void op##_bit(unsigned long nr, volatile unsigned long *m)\
+ 									\
+ 	m += nr >> 5;							\
+ 									\
+-	/*								\
+-	 * ARC ISA micro-optimization:					\
+-	 *								\
+-	 * Instructions dealing with bitpos only consider lower 5 bits	\
+-	 * e.g (x << 33) is handled like (x << 1) by ASL instruction	\
+-	 *  (mem pointer still needs adjustment to point to next word)	\
+-	 *								\
+-	 * Hence the masking to clamp @nr arg can be elided in general.	\
+-	 *								\
+-	 * However if @nr is a constant (above assumed in a register),	\
+-	 * and greater than 31, gcc can optimize away (x << 33) to 0,	\
+-	 * as overflow, given the 32-bit ISA. Thus masking needs to be	\
+-	 * done for const @nr, but no code is generated due to gcc	\
+-	 * const prop.							\
+-	 */								\
+ 	nr &= 0x1f;							\
+ 									\
+ 	__asm__ __volatile__(						\
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1379_f3c5b82c36e98876ab507d3bc062100eecaba158.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1379_f3c5b82c36e98876ab507d3bc062100eecaba158.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

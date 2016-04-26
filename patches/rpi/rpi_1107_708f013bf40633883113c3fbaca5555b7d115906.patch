@@ -1,0 +1,150 @@
+commit 708f013bf40633883113c3fbaca5555b7d115906
+Author: Ondrej Wisniewski <ondrej.wisniewski@gmail.com>
+Date:   Fri Nov 6 15:01:28 2015 +0100
+
+    dts: Added overlay for Adafruit PiTFT 2.8" capacitive touch screen
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index 8595b14..7d747bc 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -36,6 +36,7 @@ dtb-$(RPI_DT_OVERLAYS) += mmc-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += mz61581-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += piscreen-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += piscreen2r-overlay.dtb
++dtb-$(RPI_DT_OVERLAYS) += pitft28-capacitive-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pitft28-resistive-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pps-gpio-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pwm-overlay.dtb
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 0a21248..422a0d4 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -439,6 +439,28 @@ Params: speed                    Display SPI bus speed
+         xohms                    Touchpanel sensitivity (X-plate resistance)
+ 
+ 
++Name:   pitft28-capacitive
++Info:   Adafruit PiTFT 2.8" capacitive touch screen
++Load:   dtoverlay=pitft28-capacitive,<param>=<val>
++Params: speed                    Display SPI bus speed
++
++        rotate                   Display rotation {0,90,180,270}
++
++        fps                      Delay between frame updates
++
++        debug                    Debug output level {0-7}
++
++        touch-sizex              Touchscreen size x (default 240)
++
++        touch-sizey              Touchscreen size y (default 320)
++
++        touch-invx               Touchscreen inverted x axis
++
++        touch-invy               Touchscreen inverted y axis
++
++        touch-swapxy             Touchscreen swapped x y axis
++
++
+ Name:   pitft28-resistive
+ Info:   Adafruit PiTFT 2.8" resistive touch screen
+ Load:   dtoverlay=pitft28-resistive,<param>=<val>
+diff --git a/arch/arm/boot/dts/overlays/pitft28-capacitive-overlay.dts b/arch/arm/boot/dts/overlays/pitft28-capacitive-overlay.dts
+new file mode 100644
+index 0000000..48920e9
+--- /dev/null
++++ b/arch/arm/boot/dts/overlays/pitft28-capacitive-overlay.dts
+@@ -0,0 +1,88 @@
++/*
++ * Device Tree overlay for Adafruit PiTFT 2.8" capacitive touch screen
++ *
++ */
++
++/dts-v1/;
++/plugin/;
++
++/ {
++        compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
++
++        fragment@0 {
++                target = <&spi0>;
++                __overlay__ {
++                        status = "okay";
++
++                        spidev@0{
++                                status = "disabled";
++                        };
++                };
++        };
++
++        fragment@1 {
++                target = <&gpio>;
++                __overlay__ {
++                        pitft_pins: pitft_pins {
++                                brcm,pins = <24 25>;
++                                brcm,function = <0 1>; /* in out */
++                                brcm,pull = <2 0>; /* pullup none */
++                        };
++                };
++        };
++
++        fragment@2 {
++                target = <&spi0>;
++                __overlay__ {
++                        /* needed to avoid dtc warning */
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        pitft: pitft@0{
++                                compatible = "ilitek,ili9340";
++                                reg = <0>;
++                                pinctrl-names = "default";
++                                pinctrl-0 = <&pitft_pins>;
++
++                                spi-max-frequency = <32000000>;
++                                rotate = <90>;
++                                fps = <25>;
++                                bgr;
++                                buswidth = <8>;
++                                dc-gpios = <&gpio 25 0>;
++                                debug = <0>;
++                        };
++                };
++        };
++
++        fragment@3 {
++                target = <&i2c1>;
++                __overlay__ {
++                        /* needed to avoid dtc warning */
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        ft6236: ft6236@38 {
++                                compatible = "focaltech,ft6236";
++                                reg = <0x38>;
++
++                                interrupt-parent = <&gpio>;
++                                interrupts = <24 2>;
++                                touchscreen-size-x = <240>;
++                                touchscreen-size-y = <320>;
++                        };
++                };
++        };
++
++        __overrides__ {
++                speed =   <&pitft>,"spi-max-frequency:0";
++                rotate =  <&pitft>,"rotate:0";
++                fps =     <&pitft>,"fps:0";
++                debug =   <&pitft>,"debug:0";
++                touch-sizex = <&ft6236>,"touchscreen-size-x?";
++                touch-sizey = <&ft6236>,"touchscreen-size-y?";
++                touch-invx  = <&ft6236>,"touchscreen-inverted-x?";
++                touch-invy  = <&ft6236>,"touchscreen-inverted-y?";
++                touch-swapxy = <&ft6236>,"touchscreen-swapped-x-y?";
++        };
++};
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1107_708f013bf40633883113c3fbaca5555b7d115906.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1107_708f013bf40633883113c3fbaca5555b7d115906.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
