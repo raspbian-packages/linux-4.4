@@ -1,0 +1,57 @@
+commit 05a2610389127e4cfcc2b9afdec83e1176b205bc
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Thu Mar 17 10:41:56 2016 +0000
+
+    pwm overlays: Params must have in-overlay targets
+
+diff --git a/arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts b/arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts
+index 957e1a4..18e4e4f 100644
+--- a/arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts
+@@ -36,11 +36,18 @@ N.B.:
+ 		};
+ 	};
+ 
++	fragment@2 {
++		target = <&clk_pwm>;
++		frag2: __overlay__ {
++			clock-frequency = <100000000>;
++		};
++	};
++
+ 	__overrides__ {
+ 		pin   = <&pwm_pins>,"brcm,pins:0";
+ 		pin2  = <&pwm_pins>,"brcm,pins:4";
+ 		func  = <&pwm_pins>,"brcm,function:0";
+ 		func2 = <&pwm_pins>,"brcm,function:4";
+-		clock = <&clk_pwm>,"clock-frequency:0";
++		clock = <&frag2>,"clock-frequency:0";
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/overlays/pwm-overlay.dts b/arch/arm/boot/dts/overlays/pwm-overlay.dts
+index ddd67ff..bf030a6 100644
+--- a/arch/arm/boot/dts/overlays/pwm-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pwm-overlay.dts
+@@ -34,9 +34,16 @@ N.B.:
+ 		};
+ 	};
+ 
++	fragment@2 {
++		target = <&clk_pwm>;
++		frag2: __overlay__ {
++			clock-frequency = <100000000>;
++		};
++	};
++
+ 	__overrides__ {
+ 		pin   = <&pwm_pins>,"brcm,pins:0";
+ 		func  = <&pwm_pins>,"brcm,function:0";
+-		clock = <&clk_pwm>,"clock-frequency:0";
++		clock = <&frag2>,"clock-frequency:0";
+ 	};
+ };
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1204_05a2610389127e4cfcc2b9afdec83e1176b205bc.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1204_05a2610389127e4cfcc2b9afdec83e1176b205bc.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

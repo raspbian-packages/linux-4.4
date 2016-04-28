@@ -1,0 +1,27 @@
+commit f22f155684481bb96748677bc58705d27bf4f06b
+Author: Dhiraj Goel <dhiraj.goel@gmail.com>
+Date:   Thu Mar 3 21:10:50 2016 -0800
+
+    bcm2835-camera: fix a bug in computation of frame timestamp
+    
+    Fixes #1318
+
+diff --git a/drivers/media/platform/bcm2835/bcm2835-camera.c b/drivers/media/platform/bcm2835/bcm2835-camera.c
+index e83334c..98a892e 100644
+--- a/drivers/media/platform/bcm2835/bcm2835-camera.c
++++ b/drivers/media/platform/bcm2835/bcm2835-camera.c
+@@ -360,8 +360,7 @@ static void buffer_cb(struct vchiq_mmal_instance *instance,
+ 				div =
+ 				    div_u64_rem(runtime_us, USEC_PER_SEC, &rem);
+ 				buf->vb.timestamp.tv_sec =
+-				    dev->capture.kernel_start_ts.tv_sec - 1 +
+-				    div;
++				    dev->capture.kernel_start_ts.tv_sec + div;
+ 				buf->vb.timestamp.tv_usec =
+ 				    dev->capture.kernel_start_ts.tv_usec + rem;
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1162_f22f155684481bb96748677bc58705d27bf4f06b.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1162_f22f155684481bb96748677bc58705d27bf4f06b.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

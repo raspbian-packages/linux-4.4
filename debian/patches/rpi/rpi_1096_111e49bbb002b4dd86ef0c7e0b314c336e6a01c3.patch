@@ -1,0 +1,40 @@
+commit 111e49bbb002b4dd86ef0c7e0b314c336e6a01c3
+Author: Eric Anholt <eric@anholt.net>
+Date:   Tue Oct 20 13:59:15 2015 +0100
+
+    drm/vc4: Add support for more display plane formats.
+    
+    Signed-off-by: Eric Anholt <eric@anholt.net>
+
+diff --git a/drivers/gpu/drm/vc4/vc4_plane.c b/drivers/gpu/drm/vc4/vc4_plane.c
+index 65e5455..0f85eb5 100644
+--- a/drivers/gpu/drm/vc4/vc4_plane.c
++++ b/drivers/gpu/drm/vc4/vc4_plane.c
+@@ -59,6 +59,22 @@ static const struct hvs_format {
+ 		.drm = DRM_FORMAT_ARGB8888, .hvs = HVS_PIXEL_FORMAT_RGBA8888,
+ 		.pixel_order = HVS_PIXEL_ORDER_ABGR, .has_alpha = true,
+ 	},
++	{
++		.drm = DRM_FORMAT_RGB565, .hvs = HVS_PIXEL_FORMAT_RGB565,
++		.pixel_order = HVS_PIXEL_ORDER_XRGB, .has_alpha = false,
++	},
++	{
++		.drm = DRM_FORMAT_BGR565, .hvs = HVS_PIXEL_FORMAT_RGB565,
++		.pixel_order = HVS_PIXEL_ORDER_XBGR, .has_alpha = false,
++	},
++	{
++		.drm = DRM_FORMAT_ARGB1555, .hvs = HVS_PIXEL_FORMAT_RGBA5551,
++		.pixel_order = HVS_PIXEL_ORDER_ABGR, .has_alpha = true,
++	},
++	{
++		.drm = DRM_FORMAT_XRGB1555, .hvs = HVS_PIXEL_FORMAT_RGBA5551,
++		.pixel_order = HVS_PIXEL_ORDER_ABGR, .has_alpha = false,
++	},
+ };
+ 
+ static const struct hvs_format *vc4_get_hvs_format(u32 drm_format)
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1096_111e49bbb002b4dd86ef0c7e0b314c336e6a01c3.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1096_111e49bbb002b4dd86ef0c7e0b314c336e6a01c3.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
