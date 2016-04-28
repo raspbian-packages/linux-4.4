@@ -1,0 +1,24 @@
+commit e7515ee9af1d150d50b55d8f8f53d735a23cb253
+Author: popcornmix <popcornmix@gmail.com>
+Date:   Fri Apr 17 16:58:45 2015 +0100
+
+    smsc95xx: Disable turbo mode by default
+
+diff --git a/drivers/net/usb/smsc95xx.c b/drivers/net/usb/smsc95xx.c
+index b544181..9c0da18 100755
+--- a/drivers/net/usb/smsc95xx.c
++++ b/drivers/net/usb/smsc95xx.c
+@@ -70,7 +70,7 @@ struct smsc95xx_priv {
+ 	u8 suspend_flags;
+ };
+ 
+-static bool turbo_mode = true;
++static bool turbo_mode = false;
+ module_param(turbo_mode, bool, 0644);
+ MODULE_PARM_DESC(turbo_mode, "Enable multiple frames per Rx transaction");
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1001_e7515ee9af1d150d50b55d8f8f53d735a23cb253.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1001_e7515ee9af1d150d50b55d8f8f53d735a23cb253.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
