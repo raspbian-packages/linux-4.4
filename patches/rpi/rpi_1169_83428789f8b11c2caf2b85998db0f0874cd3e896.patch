@@ -1,0 +1,32 @@
+commit 83428789f8b11c2caf2b85998db0f0874cd3e896
+Author: popcornmix <popcornmix@gmail.com>
+Date:   Tue Mar 8 17:08:39 2016 +0000
+
+    config: rebuild with savedefconfig
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 6d6b519..116002b 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -593,7 +593,6 @@ CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+ CONFIG_SERIAL_OF_PLATFORM=y
+ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_HW_RANDOM_BCM2835=y
+ CONFIG_RAW_DRIVER=y
+ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=m
+@@ -1112,7 +1111,7 @@ CONFIG_EXTCON=m
+ CONFIG_EXTCON_ARIZONA=m
+ CONFIG_IIO=m
+ CONFIG_IIO_BUFFER=y
+-CONFIG_IIO_BUFFER_CB=y
++CONFIG_IIO_BUFFER_CB=m
+ CONFIG_IIO_KFIFO_BUF=m
+ CONFIG_MCP320X=m
+ CONFIG_DHT11=m
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1169_83428789f8b11c2caf2b85998db0f0874cd3e896.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1169_83428789f8b11c2caf2b85998db0f0874cd3e896.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

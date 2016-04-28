@@ -1,0 +1,44 @@
+commit eb4d55c34018bbb92808264217a0b2857d2b2ae6
+Author: DigitalDreamtime <clive.messer@digitaldreamtime.co.uk>
+Date:   Fri Mar 11 11:44:35 2016 +0000
+
+    Remove I2S config from bt_pins.
+    
+    Remove I2S config from bt_pins. Causes issues with clock alignment when I2S is
+    used by an external DAC via GPIO header.
+
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+index 5a0c45a..2cb7d43 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+@@ -45,9 +45,9 @@
+ 	};
+ 
+ 	bt_pins: bt_pins {
+-		brcm,pins =     <28 29 30 31 43>;
+-		brcm,function = <6 6 6 6 4>;   /* alt2:PCM alt0:GPCLK2 */
+-		brcm,pull =     <0 0 0 0 0>;
++		brcm,pins = <43>;
++		brcm,function = <4>; /* alt0:GPCLK2 */
++		brcm,pull = <0>;
+ 	};
+ 
+ 	uart0_pins: uart0_pins {
+diff --git a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+index 0b8f0ca..f07afcb 100644
+--- a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+@@ -29,7 +29,7 @@
+ 		target = <&uart1>;
+ 		__overlay__ {
+ 			pinctrl-names = "default";
+-			pinctrl-0 = <&uart1_pins>;
++			pinctrl-0 = <&uart1_pins &bt_pins>;
+ 			status = "okay";
+ 		};
+ 	};
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1174_eb4d55c34018bbb92808264217a0b2857d2b2ae6.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1174_eb4d55c34018bbb92808264217a0b2857d2b2ae6.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

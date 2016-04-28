@@ -1,0 +1,33 @@
+commit 994f9db39113a268394fcba06537cabfbb40cb2b
+Author: Dmitry V. Levin <ldv@altlinux.org>
+Date:   Thu Mar 19 11:10:54 2015 +0000
+
+    vfs: show_vfsstat: do not ignore errors from show_devname method
+    
+    commit 5f8d498d4364f544fee17125787a47553db02afa upstream.
+    
+    Explicitly check show_devname method return code and bail out in case
+    of an error.  This fixes regression introduced by commit 9d4d65748a5c.
+    
+    Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+    Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/fs/proc_namespace.c b/fs/proc_namespace.c
+index 8ebd9a3..876459559 100644
+--- a/fs/proc_namespace.c
++++ b/fs/proc_namespace.c
+@@ -197,6 +197,8 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
+ 	if (sb->s_op->show_devname) {
+ 		seq_puts(m, "device ");
+ 		err = sb->s_op->show_devname(m, mnt_path.dentry);
++		if (err)
++			goto out;
+ 	} else {
+ 		if (r->mnt_devname) {
+ 			seq_puts(m, "device ");
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1373_994f9db39113a268394fcba06537cabfbb40cb2b.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1373_994f9db39113a268394fcba06537cabfbb40cb2b.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
