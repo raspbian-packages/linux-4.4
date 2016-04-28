@@ -1,0 +1,26 @@
+commit df03f00c5e21559185b5a61ea5e8238e10959ab1
+Author: Matthias Reichl <hias@horus.com>
+Date:   Sat Oct 10 12:29:18 2015 +0200
+
+    bcm2835-dma: Fix dreq not set for slave transfers
+    
+    Set dreq to slave_id if it is not set like in bcm2708-dmaengine.
+
+diff --git a/drivers/dma/bcm2835-dma.c b/drivers/dma/bcm2835-dma.c
+index 5db0a95..fe1fd60 100644
+--- a/drivers/dma/bcm2835-dma.c
++++ b/drivers/dma/bcm2835-dma.c
+@@ -657,6 +657,8 @@ static int bcm2835_dma_slave_config(struct dma_chan *chan,
+ 	}
+ 
+ 	c->cfg = *cfg;
++	if (!c->dreq)
++		c->dreq = cfg->slave_id;
+ 
+ 	return 0;
+ }
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1022_df03f00c5e21559185b5a61ea5e8238e10959ab1.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1022_df03f00c5e21559185b5a61ea5e8238e10959ab1.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

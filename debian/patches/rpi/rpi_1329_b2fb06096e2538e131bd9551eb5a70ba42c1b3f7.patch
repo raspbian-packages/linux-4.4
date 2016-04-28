@@ -1,0 +1,45 @@
+commit b2fb06096e2538e131bd9551eb5a70ba42c1b3f7
+Author: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Date:   Fri Feb 12 17:10:37 2016 +0100
+
+    HID: fix hid_ignore_special_drivers module parameter
+    
+    commit 4392bf333388cabdad5afe5b1500002d7b9c318e upstream.
+    
+    hid_ignore_special_drivers works fine until hid_scan_report autodetects and
+    reassign devices (for hid-multitouch, hid-microsoft and hid-rmi).
+    
+    Simplify the handling of the parameter: if it is there, use hid-generic, no
+    matter what, and if not, scan the device or rely on the hid_have_special_driver
+    table.
+    
+    This was detected while trying to disable hid-multitouch on a Surface Pro cover
+    which prevented to use the keyboard.
+    
+    Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+    Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index f16155f5..ec791e1 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -2616,9 +2616,10 @@ int hid_add_device(struct hid_device *hdev)
+ 	/*
+ 	 * Scan generic devices for group information
+ 	 */
+-	if (hid_ignore_special_drivers ||
+-	    (!hdev->group &&
+-	     !hid_match_id(hdev, hid_have_special_driver))) {
++	if (hid_ignore_special_drivers) {
++		hdev->group = HID_GROUP_GENERIC;
++	} else if (!hdev->group &&
++		   !hid_match_id(hdev, hid_have_special_driver)) {
+ 		ret = hid_scan_report(hdev);
+ 		if (ret)
+ 			hid_warn(hdev, "bad device descriptor (%d)\n", ret);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1329_b2fb06096e2538e131bd9551eb5a70ba42c1b3f7.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1329_b2fb06096e2538e131bd9551eb5a70ba42c1b3f7.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

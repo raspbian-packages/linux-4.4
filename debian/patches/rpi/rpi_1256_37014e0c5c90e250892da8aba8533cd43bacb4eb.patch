@@ -1,0 +1,71 @@
+commit 37014e0c5c90e250892da8aba8533cd43bacb4eb
+Author: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Date:   Wed Mar 2 13:24:14 2016 +0200
+
+    perf/core: Fix perf_sched_count derailment
+    
+    commit 927a5570855836e5d5859a80ce7e91e963545e8f upstream.
+    
+    The error path in perf_event_open() is such that asking for a sampling
+    event on a PMU that doesn't generate interrupts will end up in dropping
+    the perf_sched_count even though it hasn't been incremented for this
+    event yet.
+    
+    Given a sufficient amount of these calls, we'll end up disabling
+    scheduler's jump label even though we'd still have active events in the
+    system, thereby facilitating the arrival of the infernal regions upon us.
+    
+    I'm fixing this by moving account_event() inside perf_event_alloc().
+    
+    Signed-off-by: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+    Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+    Cc: Arnaldo Carvalho de Melo <acme@infradead.org>
+    Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+    Cc: Jiri Olsa <jolsa@redhat.com>
+    Cc: Linus Torvalds <torvalds@linux-foundation.org>
+    Cc: Peter Zijlstra <peterz@infradead.org>
+    Cc: Stephane Eranian <eranian@google.com>
+    Cc: Thomas Gleixner <tglx@linutronix.de>
+    Cc: Vince Weaver <vincent.weaver@maine.edu>
+    Cc: vince@deater.net
+    Link: http://lkml.kernel.org/r/1456917854-29427-1-git-send-email-alexander.shishkin@linux.intel.com
+    Signed-off-by: Ingo Molnar <mingo@kernel.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index 1087bbe..faf2067 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -7979,6 +7979,9 @@ perf_event_alloc(struct perf_event_attr *attr, int cpu,
+ 		}
+ 	}
+ 
++	/* symmetric to unaccount_event() in _free_event() */
++	account_event(event);
++
+ 	return event;
+ 
+ err_per_task:
+@@ -8342,8 +8345,6 @@ SYSCALL_DEFINE5(perf_event_open,
+ 		}
+ 	}
+ 
+-	account_event(event);
+-
+ 	/*
+ 	 * Special case software events and allow them to be part of
+ 	 * any hardware group.
+@@ -8626,8 +8627,6 @@ perf_event_create_kernel_counter(struct perf_event_attr *attr, int cpu,
+ 	/* Mark owner so we could distinguish it from user events. */
+ 	event->owner = EVENT_OWNER_KERNEL;
+ 
+-	account_event(event);
+-
+ 	ctx = find_get_context(event->pmu, task, event);
+ 	if (IS_ERR(ctx)) {
+ 		err = PTR_ERR(ctx);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1256_37014e0c5c90e250892da8aba8533cd43bacb4eb.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1256_37014e0c5c90e250892da8aba8533cd43bacb4eb.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
