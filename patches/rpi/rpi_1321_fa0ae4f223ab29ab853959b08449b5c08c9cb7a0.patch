@@ -1,0 +1,47 @@
+commit fa0ae4f223ab29ab853959b08449b5c08c9cb7a0
+Author: Alexander Usyskin <alexander.usyskin@intel.com>
+Date:   Sun Feb 7 23:35:32 2016 +0200
+
+    mei: bus: check if the device is enabled before data transfer
+    
+    commit 15c13dfcad883a1e76b714480fb27be96247fd82 upstream.
+    
+    The bus data transfer interface was missing the check if the device is
+    in enabled state, this may lead to stack corruption during link reset.
+    
+    Signed-off-by: Alexander Usyskin <alexander.usyskin@intel.com>
+    Signed-off-by: Tomas Winkler <tomas.winkler@intel.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/misc/mei/bus.c b/drivers/misc/mei/bus.c
+index 0b05aa9..1a173d0 100644
+--- a/drivers/misc/mei/bus.c
++++ b/drivers/misc/mei/bus.c
+@@ -53,6 +53,11 @@ ssize_t __mei_cl_send(struct mei_cl *cl, u8 *buf, size_t length,
+ 	bus = cl->dev;
+ 
+ 	mutex_lock(&bus->device_lock);
++	if (bus->dev_state != MEI_DEV_ENABLED) {
++		rets = -ENODEV;
++		goto out;
++	}
++
+ 	if (!mei_cl_is_connected(cl)) {
+ 		rets = -ENODEV;
+ 		goto out;
+@@ -109,6 +114,10 @@ ssize_t __mei_cl_recv(struct mei_cl *cl, u8 *buf, size_t length)
+ 	bus = cl->dev;
+ 
+ 	mutex_lock(&bus->device_lock);
++	if (bus->dev_state != MEI_DEV_ENABLED) {
++		rets = -ENODEV;
++		goto out;
++	}
+ 
+ 	cb = mei_cl_read_cb(cl, NULL);
+ 	if (cb)
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1321_fa0ae4f223ab29ab853959b08449b5c08c9cb7a0.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1321_fa0ae4f223ab29ab853959b08449b5c08c9cb7a0.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

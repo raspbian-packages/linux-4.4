@@ -1,0 +1,50 @@
+commit 65b55d179b275cec668b2fffa23f884b55575726
+Author: John Dahlstrom <jodarom@SDF.ORG>
+Date:   Sat Feb 27 00:09:58 2016 -0600
+
+    ideapad-laptop: Add ideapad Y700 (15) to the no_hw_rfkill DMI list
+    
+    commit 4db9675d927a71faa66e5ab128d2390d6329750b upstream.
+    
+    Some Lenovo ideapad models lack a physical rfkill switch.
+    On Lenovo models ideapad Y700 Touch-15ISK and ideapad Y700-15ISK,
+    ideapad-laptop would wrongly report all radios as blocked by
+    hardware which caused wireless network connections to fail.
+    
+    Add these models without an rfkill switch to the no_hw_rfkill list.
+    
+    Signed-off-by: John Dahlstrom <jodarom@sdf.org>
+    Cc: <stable@vger.kernel.org> # 3.17.x-: 4fa9dab: ideapad_laptop: Lenovo G50-30 fix rfkill reports wireless blocked
+    Signed-off-by: Darren Hart <dvhart@linux.intel.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/platform/x86/ideapad-laptop.c b/drivers/platform/x86/ideapad-laptop.c
+index d78ee15..be3bc2f 100644
+--- a/drivers/platform/x86/ideapad-laptop.c
++++ b/drivers/platform/x86/ideapad-laptop.c
+@@ -865,6 +865,20 @@ static const struct dmi_system_id no_hw_rfkill_list[] = {
+ 		},
+ 	},
+ 	{
++		.ident = "Lenovo ideapad Y700-15ISK",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad Y700-15ISK"),
++		},
++	},
++	{
++		.ident = "Lenovo ideapad Y700 Touch-15ISK",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo ideapad Y700 Touch-15ISK"),
++		},
++	},
++	{
+ 		.ident = "Lenovo ideapad Y700-17ISK",
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1409_65b55d179b275cec668b2fffa23f884b55575726.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1409_65b55d179b275cec668b2fffa23f884b55575726.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

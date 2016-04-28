@@ -1,0 +1,41 @@
+commit 688a5f0daa45e0a51b324707768d472e1d715c13
+Author: wm4 <wm4@nowhere>
+Date:   Wed Jan 13 19:41:45 2016 +0100
+
+    bcm2835: extend allowed range of channels and samplerates
+    
+    Allow everything the videocore accepts.
+
+diff --git a/sound/arm/bcm2835-pcm.c b/sound/arm/bcm2835-pcm.c
+index 8c86375..31e3131 100755
+--- a/sound/arm/bcm2835-pcm.c
++++ b/sound/arm/bcm2835-pcm.c
+@@ -26,9 +26,9 @@ static struct snd_pcm_hardware snd_bcm2835_playback_hw = {
+ 	.formats = SNDRV_PCM_FMTBIT_U8 | SNDRV_PCM_FMTBIT_S16_LE,
+ 	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_8000_48000,
+ 	.rate_min = 8000,
+-	.rate_max = 48000,
++	.rate_max = 192000,
+ 	.channels_min = 1,
+-	.channels_max = 2,
++	.channels_max = 8,
+ 	.buffer_bytes_max = 128 * 1024,
+ 	.period_bytes_min =   1 * 1024,
+ 	.period_bytes_max = 128 * 1024,
+@@ -43,9 +43,9 @@ static struct snd_pcm_hardware snd_bcm2835_playback_spdif_hw = {
+ 	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_44100 |
+ 		SNDRV_PCM_RATE_48000,
+ 	.rate_min = 44100,
+-	.rate_max = 48000,
++	.rate_max = 192000,
+ 	.channels_min = 2,
+-	.channels_max = 2,
++	.channels_max = 8,
+ 	.buffer_bytes_max = 128 * 1024,
+ 	.period_bytes_min =   1 * 1024,
+ 	.period_bytes_max = 128 * 1024,
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1125_688a5f0daa45e0a51b324707768d472e1d715c13.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1125_688a5f0daa45e0a51b324707768d472e1d715c13.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

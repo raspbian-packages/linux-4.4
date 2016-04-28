@@ -1,0 +1,41 @@
+commit b6c6426252e2653407811f46c883661955b9f5fa
+Author: Oliver Neukum <oneukum@suse.com>
+Date:   Wed Mar 16 13:26:17 2016 +0100
+
+    USB: usb_driver_claim_interface: add sanity checking
+    
+    commit 0b818e3956fc1ad976bee791eadcbb3b5fec5bfd upstream.
+    
+    Attacks that trick drivers into passing a NULL pointer
+    to usb_driver_claim_interface() using forged descriptors are
+    known. This thwarts them by sanity checking.
+    
+    Signed-off-by: Oliver Neukum <ONeukum@suse.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/usb/core/driver.c b/drivers/usb/core/driver.c
+index 56593a9..2057d91 100644
+--- a/drivers/usb/core/driver.c
++++ b/drivers/usb/core/driver.c
+@@ -502,11 +502,15 @@ static int usb_unbind_interface(struct device *dev)
+ int usb_driver_claim_interface(struct usb_driver *driver,
+ 				struct usb_interface *iface, void *priv)
+ {
+-	struct device *dev = &iface->dev;
++	struct device *dev;
+ 	struct usb_device *udev;
+ 	int retval = 0;
+ 	int lpm_disable_error;
+ 
++	if (!iface)
++		return -ENODEV;
++
++	dev = &iface->dev;
+ 	if (dev->driver)
+ 		return -EBUSY;
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1295_b6c6426252e2653407811f46c883661955b9f5fa.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1295_b6c6426252e2653407811f46c883661955b9f5fa.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
