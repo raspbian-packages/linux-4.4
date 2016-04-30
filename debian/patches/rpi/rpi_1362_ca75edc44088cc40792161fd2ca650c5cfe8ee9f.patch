@@ -1,0 +1,36 @@
+commit ca75edc44088cc40792161fd2ca650c5cfe8ee9f
+Author: Eric Wheeler <git@linux.ewheeler.net>
+Date:   Mon Mar 7 15:17:50 2016 -0800
+
+    bcache: fix cache_set_flush() NULL pointer dereference on OOM
+    
+    commit f8b11260a445169989d01df75d35af0f56178f95 upstream.
+    
+    When bch_cache_set_alloc() fails to kzalloc the cache_set, the
+    asyncronous closure handling tries to dereference a cache_set that
+    hadn't yet been allocated inside of cache_set_flush() which is called
+    by __cache_set_unregister() during cleanup.  This appears to happen only
+    during an OOM condition on bcache_register.
+    
+    Signed-off-by: Eric Wheeler <bcache@linux.ewheeler.net>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/md/bcache/super.c b/drivers/md/bcache/super.c
+index 6b07a0c..a296425 100644
+--- a/drivers/md/bcache/super.c
++++ b/drivers/md/bcache/super.c
+@@ -1373,6 +1373,9 @@ static void cache_set_flush(struct closure *cl)
+ 	struct btree *b;
+ 	unsigned i;
+ 
++	if (!c)
++		closure_return(cl);
++
+ 	bch_cache_accounting_destroy(&c->accounting);
+ 
+ 	kobject_put(&c->internal);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1362_ca75edc44088cc40792161fd2ca650c5cfe8ee9f.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1362_ca75edc44088cc40792161fd2ca650c5cfe8ee9f.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
