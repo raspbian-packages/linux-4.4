@@ -1,0 +1,37 @@
+commit 84cf91ad330f5c9ba51f761a37e58b9aa99bf470
+Author: Christian Borntraeger <borntraeger@de.ibm.com>
+Date:   Mon Feb 29 15:59:18 2016 +0100
+
+    s390/cpumf: Fix lpp detection
+    
+    commit 7a76aa95f6f6682db5629449d763251d1c9f8c4e upstream.
+    
+    we have to check bit 40 of the facility list before issuing LPP
+    and not bit 48. Otherwise a guest running on a system with
+    "The decimal-floating-point zoned-conversion facility" and without
+    the "The set-program-parameters facility" might crash on an lpp
+    instruction.
+    
+    Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+    Fixes: e22cf8ca6f75 ("s390/cpumf: rework program parameter setting to detect guest samples")
+    Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/s390/kernel/head64.S b/arch/s390/kernel/head64.S
+index 58b719f..1ad2407 100644
+--- a/arch/s390/kernel/head64.S
++++ b/arch/s390/kernel/head64.S
+@@ -16,7 +16,7 @@
+ 
+ __HEAD
+ ENTRY(startup_continue)
+-	tm	__LC_STFL_FAC_LIST+6,0x80	# LPP available ?
++	tm	__LC_STFL_FAC_LIST+5,0x80	# LPP available ?
+ 	jz	0f
+ 	xc	__LC_LPP+1(7,0),__LC_LPP+1	# clear lpp and current_pid
+ 	mvi	__LC_LPP,0x80			#   and set LPP_MAGIC
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1239_84cf91ad330f5c9ba51f761a37e58b9aa99bf470.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1239_84cf91ad330f5c9ba51f761a37e58b9aa99bf470.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

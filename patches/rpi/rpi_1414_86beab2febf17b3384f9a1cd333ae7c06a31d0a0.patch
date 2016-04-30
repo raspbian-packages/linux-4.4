@@ -1,0 +1,58 @@
+commit 86beab2febf17b3384f9a1cd333ae7c06a31d0a0
+Author: Adrian Hunter <adrian.hunter@intel.com>
+Date:   Mon Mar 7 13:33:55 2016 +0200
+
+    mmc: sdhci: Fix override of timeout clk wrt max_busy_timeout
+    
+    commit 995136247915c5cee633d55ba23f6eebf67aa567 upstream.
+    
+    Normally the timeout clock frequency is read from the capabilities
+    register.  It is also possible to set the value prior to calling
+    sdhci_add_host() in which case that value will override the
+    capabilities register value.  However that was being done after
+    calculating max_busy_timeout so that max_busy_timeout was being
+    calculated using the wrong value of timeout_clk.
+    
+    Fix that by moving the override before max_busy_timeout is
+    calculated.
+    
+    The result is that the max_busy_timeout and max_discard
+    increase for BSW devices so that, for example, the time for
+    mkfs.ext4 on a 64GB eMMC drops from about 1 minute 40 seconds
+    to about 20 seconds.
+    
+    Note, in the future, the capabilities setting will be tidied up
+    and this override won't be used anymore.  However this fix is
+    needed for stable.
+    
+    Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+    Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index c993d39..1a802af 100644
+--- a/drivers/mmc/host/sdhci.c
++++ b/drivers/mmc/host/sdhci.c
+@@ -3106,14 +3106,14 @@ int sdhci_add_host(struct sdhci_host *host)
+ 		if (caps[0] & SDHCI_TIMEOUT_CLK_UNIT)
+ 			host->timeout_clk *= 1000;
+ 
++		if (override_timeout_clk)
++			host->timeout_clk = override_timeout_clk;
++
+ 		mmc->max_busy_timeout = host->ops->get_max_timeout_count ?
+ 			host->ops->get_max_timeout_count(host) : 1 << 27;
+ 		mmc->max_busy_timeout /= host->timeout_clk;
+ 	}
+ 
+-	if (override_timeout_clk)
+-		host->timeout_clk = override_timeout_clk;
+-
+ 	mmc->caps |= MMC_CAP_SDIO_IRQ | MMC_CAP_ERASE | MMC_CAP_CMD23;
+ 	mmc->caps2 |= MMC_CAP2_SDIO_IRQ_NOTHREAD;
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1414_86beab2febf17b3384f9a1cd333ae7c06a31d0a0.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1414_86beab2febf17b3384f9a1cd333ae7c06a31d0a0.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

@@ -1,0 +1,28 @@
+commit fbec01e2d17b924d91850e17eeecf975e74c9ebf
+Author: Eric Anholt <eric@anholt.net>
+Date:   Wed Oct 14 11:32:14 2015 -0700
+
+    drm/vc4: Force HDMI to connected.
+    
+    For some reason on the downstream tree, the HPD GPIO isn't working.
+    
+    Signed-off-by: Eric Anholt <eric@anholt.net>
+
+diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
+index da9a36d..d15c529 100644
+--- a/drivers/gpu/drm/vc4/vc4_hdmi.c
++++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
+@@ -164,6 +164,8 @@ vc4_hdmi_connector_detect(struct drm_connector *connector, bool force)
+ 	struct drm_device *dev = connector->dev;
+ 	struct vc4_dev *vc4 = to_vc4_dev(dev);
+ 
++	return connector_status_connected;
++
+ 	if (vc4->hdmi->hpd_gpio) {
+ 		if (gpio_get_value(vc4->hdmi->hpd_gpio))
+ 			return connector_status_connected;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1090_fbec01e2d17b924d91850e17eeecf975e74c9ebf.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1090_fbec01e2d17b924d91850e17eeecf975e74c9ebf.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
