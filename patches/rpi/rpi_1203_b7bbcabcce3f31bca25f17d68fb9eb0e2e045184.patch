@@ -1,0 +1,47 @@
+commit b7bbcabcce3f31bca25f17d68fb9eb0e2e045184
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Thu Mar 17 10:16:16 2016 +0000
+
+    pi3-miniuart-bt-overlay: Correct and clarify info
+    
+    Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 2a354b3..b674394 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -511,8 +511,10 @@ Name:   pi3-miniuart-bt
+ Info:   Switch Pi3 Bluetooth function to use the mini-UART (ttyS0) and restore
+         UART0/ttyAMA0 over GPIOs 14 & 15. Note that this may reduce the maximum
+         usable baudrate.
+-        N.B. It is also necessary to edit /lib/systemd/system/hciuart.server
+-        and replace ttyAMA0 with ttyS0.
++        N.B. It is also necessary to edit /lib/systemd/system/hciuart.service
++        and replace ttyAMA0 with ttyS0, unless you have a system with udev rules
++        that create /dev/serial0 and /dev/serial1, in which case use
++        /dev/serial1 instead because it will always be correct.
+ Load:   dtoverlay=pi3-miniuart-bt
+ Params: <None>
+ 
+diff --git a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+index f07afcb..38ed33b 100644
+--- a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+@@ -5,8 +5,10 @@
+    UART0/ttyAMA0 over GPIOs 14 & 15. Note that this may reduce the maximum
+    usable baudrate.
+ 
+-   It is also necessary to edit /lib/systemd/system/hciuart.server and
+-   replace ttyAMA0 with ttyS0.
++   It is also necessary to edit /lib/systemd/system/hciuart.service and
++   replace ttyAMA0 with ttyS0, unless you have a system with udev rules
++   that create /dev/serial0 and /dev/serial1, in which case use /dev/serial1
++   instead because it will always be correct.
+ 
+    If cmdline.txt uses the alias serial0 to refer to the user-accessable port
+    then the firmware will replace with the appropriate port whether or not
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1203_b7bbcabcce3f31bca25f17d68fb9eb0e2e045184.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1203_b7bbcabcce3f31bca25f17d68fb9eb0e2e045184.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

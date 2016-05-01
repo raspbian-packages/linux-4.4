@@ -1,0 +1,68 @@
+commit f640dae8943ecbcc9ee6710aec89bba594512336
+Author: Lada Trimasova <ltrimas@synopsys.com>
+Date:   Wed Mar 9 20:21:04 2016 +0300
+
+    ARC: [BE] readl()/writel() to work in Big Endian CPU configuration
+    
+    commit f778cc65717687a3d3f26dd21bef62cd059f1b8b upstream.
+    
+    read{l,w}() write{l,w}() primitives should use le{16,32}_to_cpu() and
+    cpu_to_le{16,32}() respectively to ensure device registers are read
+    correctly in Big Endian CPU configuration.
+    
+    Per Arnd Bergmann
+    | Most drivers using readl() or readl_relaxed() expect those to perform byte
+    | swaps on big-endian architectures, as the registers tend to be fixed endian
+    
+    This was needed for getting UART to work correctly on a Big Endian ARC.
+    
+    The ARC accessors originally were fine, and the bug got introduced
+    inadventently by commit b8a033023994 ("ARCv2: barriers")
+    
+    Fixes: b8a033023994 ("ARCv2: barriers")
+    Link: http://lkml.kernel.org/r/201603100845.30602.arnd@arndb.de
+    Cc: Alexey Brodkin <abrodkin@synopsys.com>
+    Cc: Arnd Bergmann <arnd@arndb.de>
+    Signed-off-by: Lada Trimasova <ltrimas@synopsys.com>
+    [vgupta: beefed up changelog, added Fixes/stable tags]
+    Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
+index 694ece8..27b17ad 100644
+--- a/arch/arc/include/asm/io.h
++++ b/arch/arc/include/asm/io.h
+@@ -129,15 +129,23 @@ static inline void __raw_writel(u32 w, volatile void __iomem *addr)
+ #define writel(v,c)		({ __iowmb(); writel_relaxed(v,c); })
+ 
+ /*
+- * Relaxed API for drivers which can handle any ordering themselves
++ * Relaxed API for drivers which can handle barrier ordering themselves
++ *
++ * Also these are defined to perform little endian accesses.
++ * To provide the typical device register semantics of fixed endian,
++ * swap the byte order for Big Endian
++ *
++ * http://lkml.kernel.org/r/201603100845.30602.arnd@arndb.de
+  */
+ #define readb_relaxed(c)	__raw_readb(c)
+-#define readw_relaxed(c)	__raw_readw(c)
+-#define readl_relaxed(c)	__raw_readl(c)
++#define readw_relaxed(c) ({ u16 __r = le16_to_cpu((__force __le16) \
++					__raw_readw(c)); __r; })
++#define readl_relaxed(c) ({ u32 __r = le32_to_cpu((__force __le32) \
++					__raw_readl(c)); __r; })
+ 
+ #define writeb_relaxed(v,c)	__raw_writeb(v,c)
+-#define writew_relaxed(v,c)	__raw_writew(v,c)
+-#define writel_relaxed(v,c)	__raw_writel(v,c)
++#define writew_relaxed(v,c)	__raw_writew((__force u16) cpu_to_le16(v),c)
++#define writel_relaxed(v,c)	__raw_writel((__force u32) cpu_to_le32(v),c)
+ 
+ #include <asm-generic/io.h>
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1378_f640dae8943ecbcc9ee6710aec89bba594512336.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1378_f640dae8943ecbcc9ee6710aec89bba594512336.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

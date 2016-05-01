@@ -1,0 +1,55 @@
+commit b58e781068d9a5fd6b0ee77f595c3dbaa0d2b7aa
+Author: Eric Wheeler <git@linux.ewheeler.net>
+Date:   Fri Feb 26 14:39:06 2016 -0800
+
+    bcache: fix race of writeback thread starting before complete initialization
+    
+    commit 07cc6ef8edc47f8b4fc1e276d31127a0a5863d4d upstream.
+    
+    The bch_writeback_thread might BUG_ON in read_dirty() if
+    dc->sb==BDEV_STATE_DIRTY and bch_sectors_dirty_init has not yet completed
+    its related initialization.  This patch downs the dc->writeback_lock until
+    after initialization is complete, thus preventing bch_writeback_thread
+    from proceeding prematurely.
+    
+    See this thread:
+      http://thread.gmane.org/gmane.linux.kernel.bcache.devel/3453
+    
+    Signed-off-by: Eric Wheeler <bcache@linux.ewheeler.net>
+    Tested-by: Marc MERLIN <marc@merlins.org>
+    Signed-off-by: Jens Axboe <axboe@fb.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/md/bcache/super.c b/drivers/md/bcache/super.c
+index f3f98c3..6b07a0c 100644
+--- a/drivers/md/bcache/super.c
++++ b/drivers/md/bcache/super.c
+@@ -1015,8 +1015,12 @@ int bch_cached_dev_attach(struct cached_dev *dc, struct cache_set *c)
+ 	 */
+ 	atomic_set(&dc->count, 1);
+ 
+-	if (bch_cached_dev_writeback_start(dc))
++	/* Block writeback thread, but spawn it */
++	down_write(&dc->writeback_lock);
++	if (bch_cached_dev_writeback_start(dc)) {
++		up_write(&dc->writeback_lock);
+ 		return -ENOMEM;
++	}
+ 
+ 	if (BDEV_STATE(&dc->sb) == BDEV_STATE_DIRTY) {
+ 		bch_sectors_dirty_init(dc);
+@@ -1028,6 +1032,9 @@ int bch_cached_dev_attach(struct cached_dev *dc, struct cache_set *c)
+ 	bch_cached_dev_run(dc);
+ 	bcache_device_link(&dc->disk, c, "bdev");
+ 
++	/* Allow the writeback thread to proceed */
++	up_write(&dc->writeback_lock);
++
+ 	pr_info("Caching %s as %s on set %pU",
+ 		bdevname(dc->bdev, buf), dc->disk.disk->disk_name,
+ 		dc->disk.c->sb.set_uuid);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1361_b58e781068d9a5fd6b0ee77f595c3dbaa0d2b7aa.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1361_b58e781068d9a5fd6b0ee77f595c3dbaa0d2b7aa.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

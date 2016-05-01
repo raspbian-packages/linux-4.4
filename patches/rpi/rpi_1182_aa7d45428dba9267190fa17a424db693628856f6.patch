@@ -1,0 +1,45 @@
+commit aa7d45428dba9267190fa17a424db693628856f6
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Fri May 29 11:48:59 2015 +0100
+
+    Enable Dynamic Device Tree for bcmrpi_defconfig and bcm2709_defconfig
+    
+    Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 7793baf..0fff5a3 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -403,6 +403,7 @@ CONFIG_MTD=m
+ CONFIG_MTD_BLOCK=m
+ CONFIG_MTD_NAND=m
+ CONFIG_MTD_UBI=m
++CONFIG_OF_CONFIGFS=y
+ CONFIG_ZRAM=m
+ CONFIG_ZRAM_LZ4_COMPRESS=y
+ CONFIG_BLK_DEV_LOOP=y
+@@ -1161,7 +1162,6 @@ CONFIG_NTFS_FS=m
+ CONFIG_NTFS_RW=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+-CONFIG_CONFIGFS_FS=y
+ CONFIG_ECRYPT_FS=m
+ CONFIG_HFS_FS=m
+ CONFIG_HFSPLUS_FS=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index f09be87..2db41e6 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -396,6 +396,7 @@ CONFIG_MTD=m
+ CONFIG_MTD_BLOCK=m
+ CONFIG_MTD_NAND=m
+ CONFIG_MTD_UBI=m
++CONFIG_OF_OVERLAY=y
+ CONFIG_ZRAM=m
+ CONFIG_ZRAM_LZ4_COMPRESS=y
+ CONFIG_BLK_DEV_LOOP=y
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1182_aa7d45428dba9267190fa17a424db693628856f6.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1182_aa7d45428dba9267190fa17a424db693628856f6.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
