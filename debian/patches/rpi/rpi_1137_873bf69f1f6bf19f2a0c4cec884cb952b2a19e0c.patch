@@ -1,0 +1,61 @@
+commit 873bf69f1f6bf19f2a0c4cec884cb952b2a19e0c
+Author: vitalogy <vitalogy_github@milaw.biz>
+Date:   Tue Jan 19 07:02:02 2016 +0100
+
+    dt-overlay: add wittypi-overlay.dts
+
+diff --git a/arch/arm/boot/dts/overlays/wittypi-overlay.dts b/arch/arm/boot/dts/overlays/wittypi-overlay.dts
+new file mode 100644
+index 0000000..be5987d
+--- /dev/null
++++ b/arch/arm/boot/dts/overlays/wittypi-overlay.dts
+@@ -0,0 +1,44 @@
++/*
++ * Device Tree overlay for Witty Pi extension board by UUGear
++ *
++ */
++
++/dts-v1/;
++/plugin/;
++
++/ {
++
++	compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
++
++	fragment@0 {
++		target = <&leds>;
++		__overlay__ {
++			compatible = "gpio-leds";
++			wittypi_led: wittypi_led {
++				label = "wittypi_led";
++				linux,default-trigger = "default-on";
++				gpios = <&gpio 17 0>;
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&i2c1>;
++		__overlay__ {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			rtc: ds1337@68 {
++				compatible = "dallas,ds1337";
++				reg = <0x68>;
++				wakeup-source;
++			};
++		};
++	};
++
++	__overrides__ {
++		led_gpio =		<&wittypi_led>,"gpios:4";
++		led_trigger =	<&wittypi_led>,"linux,default-trigger";
++	};
++
++};
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1137_873bf69f1f6bf19f2a0c4cec884cb952b2a19e0c.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1137_873bf69f1f6bf19f2a0c4cec884cb952b2a19e0c.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

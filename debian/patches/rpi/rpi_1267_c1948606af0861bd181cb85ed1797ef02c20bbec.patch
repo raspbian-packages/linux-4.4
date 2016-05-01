@@ -1,0 +1,52 @@
+commit c1948606af0861bd181cb85ed1797ef02c20bbec
+Author: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Date:   Mon Mar 14 15:47:23 2016 +0100
+
+    s390/pci: enforce fmb page boundary rule
+    
+    commit 80c544ded25ac14d7cc3e555abb8ed2c2da99b84 upstream.
+    
+    The function measurement block must not cross a page boundary. Ensure
+    that by raising the alignment requirement to the smallest power of 2
+    larger than the size of the fmb.
+    
+    Fixes: d0b088531 ("s390/pci: performance statistics and debug infrastructure")
+    Signed-off-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
+    Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/s390/include/asm/pci.h b/arch/s390/include/asm/pci.h
+index c873e68..2b2ced9 100644
+--- a/arch/s390/include/asm/pci.h
++++ b/arch/s390/include/asm/pci.h
+@@ -45,7 +45,7 @@ struct zpci_fmb {
+ 	u64 rpcit_ops;
+ 	u64 dma_rbytes;
+ 	u64 dma_wbytes;
+-} __packed __aligned(16);
++} __packed __aligned(64);
+ 
+ enum zpci_state {
+ 	ZPCI_FN_STATE_RESERVED,
+diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
+index 7ef12a3..1944239 100644
+--- a/arch/s390/pci/pci.c
++++ b/arch/s390/pci/pci.c
+@@ -871,8 +871,11 @@ static inline int barsize(u8 size)
+ 
+ static int zpci_mem_init(void)
+ {
++	BUILD_BUG_ON(!is_power_of_2(__alignof__(struct zpci_fmb)) ||
++		     __alignof__(struct zpci_fmb) < sizeof(struct zpci_fmb));
++
+ 	zdev_fmb_cache = kmem_cache_create("PCI_FMB_cache", sizeof(struct zpci_fmb),
+-				16, 0, NULL);
++					   __alignof__(struct zpci_fmb), 0, NULL);
+ 	if (!zdev_fmb_cache)
+ 		goto error_zdev;
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1267_c1948606af0861bd181cb85ed1797ef02c20bbec.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1267_c1948606af0861bd181cb85ed1797ef02c20bbec.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

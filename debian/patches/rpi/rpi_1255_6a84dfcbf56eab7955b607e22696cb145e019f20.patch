@@ -1,0 +1,65 @@
+commit 6a84dfcbf56eab7955b607e22696cb145e019f20
+Author: Paolo Bonzini <pbonzini@redhat.com>
+Date:   Fri Mar 18 16:58:38 2016 +0100
+
+    KVM: VMX: fix nested vpid for old KVM guests
+    
+    commit ef697a712a6165aea7779c295604b099e8bfae2e upstream.
+    
+    Old KVM guests invoke single-context invvpid without actually checking
+    whether it is supported.  This was fixed by commit 518c8ae ("KVM: VMX:
+    Make sure single type invvpid is supported before issuing invvpid
+    instruction", 2010-08-01) and the patch after, but pre-2.6.36
+    kernels lack it including RHEL 6.
+    
+    Reported-by: jmontleo@redhat.com
+    Tested-by: jmontleo@redhat.com
+    Fixes: 99b83ac893b84ed1a62ad6d1f2b6cc32026b9e85
+    Reviewed-by: David Matlack <dmatlack@google.com>
+    Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/x86/kvm/vmx.c b/arch/x86/kvm/vmx.c
+index 75d5d5b..f34ab71 100644
+--- a/arch/x86/kvm/vmx.c
++++ b/arch/x86/kvm/vmx.c
+@@ -2637,8 +2637,15 @@ static void nested_vmx_setup_ctls_msrs(struct vcpu_vmx *vmx)
+ 	} else
+ 		vmx->nested.nested_vmx_ept_caps = 0;
+ 
++	/*
++	 * Old versions of KVM use the single-context version without
++	 * checking for support, so declare that it is supported even
++	 * though it is treated as global context.  The alternative is
++	 * not failing the single-context invvpid, and it is worse.
++	 */
+ 	if (enable_vpid)
+ 		vmx->nested.nested_vmx_vpid_caps = VMX_VPID_INVVPID_BIT |
++				VMX_VPID_EXTENT_SINGLE_CONTEXT_BIT |
+ 				VMX_VPID_EXTENT_GLOBAL_CONTEXT_BIT;
+ 	else
+ 		vmx->nested.nested_vmx_vpid_caps = 0;
+@@ -7416,12 +7423,17 @@ static int handle_invvpid(struct kvm_vcpu *vcpu)
+ 	}
+ 
+ 	switch (type) {
++	case VMX_VPID_EXTENT_SINGLE_CONTEXT:
++		/*
++		 * Old versions of KVM use the single-context version so we
++		 * have to support it; just treat it the same as all-context.
++		 */
+ 	case VMX_VPID_EXTENT_ALL_CONTEXT:
+ 		__vmx_flush_tlb(vcpu, to_vmx(vcpu)->nested.vpid02);
+ 		nested_vmx_succeed(vcpu);
+ 		break;
+ 	default:
+-		/* Trap single context invalidation invvpid calls */
++		/* Trap individual address invalidation invvpid calls */
+ 		BUG_ON(1);
+ 		break;
+ 	}
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1255_6a84dfcbf56eab7955b607e22696cb145e019f20.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1255_6a84dfcbf56eab7955b607e22696cb145e019f20.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

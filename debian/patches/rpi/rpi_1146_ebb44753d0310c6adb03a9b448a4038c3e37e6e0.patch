@@ -1,0 +1,37 @@
+commit ebb44753d0310c6adb03a9b448a4038c3e37e6e0
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Mon Feb 15 10:00:27 2016 +0000
+
+    bcm2835-sdhost: Restore ATOMIC flag to PIO sg mapping
+    
+    Allocation problems have been seen in a wireless driver, and
+    this is the only change which might have been responsible.
+
+diff --git a/drivers/mmc/host/bcm2835-sdhost.c b/drivers/mmc/host/bcm2835-sdhost.c
+index 262180b..d66385c 100644
+--- a/drivers/mmc/host/bcm2835-sdhost.c
++++ b/drivers/mmc/host/bcm2835-sdhost.c
+@@ -874,15 +874,14 @@ static void bcm2835_sdhost_prepare_data(struct bcm2835_host *host, struct mmc_co
+ 	host->flush_fifo = 0;
+ 	host->data->bytes_xfered = 0;
+ 
+-
+ 	if (!host->dma_desc) {
+ 		/* Use PIO */
+-		int flags;
++		int flags = SG_MITER_ATOMIC;
+ 
+ 		if (data->flags & MMC_DATA_READ)
+-			flags = SG_MITER_TO_SG;
++			flags |= SG_MITER_TO_SG;
+ 		else
+-			flags = SG_MITER_FROM_SG;
++			flags |= SG_MITER_FROM_SG;
+ 		sg_miter_start(&host->sg_miter, data->sg, data->sg_len, flags);
+ 		host->blocks = data->blocks;
+ 	}
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1146_ebb44753d0310c6adb03a9b448a4038c3e37e6e0.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1146_ebb44753d0310c6adb03a9b448a4038c3e37e6e0.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

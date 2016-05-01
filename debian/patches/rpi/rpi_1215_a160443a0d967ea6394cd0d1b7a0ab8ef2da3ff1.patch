@@ -1,0 +1,58 @@
+commit a160443a0d967ea6394cd0d1b7a0ab8ef2da3ff1
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Tue Mar 29 15:32:30 2016 +0100
+
+    copy_from_user: CPU_SW_DOMAIN_PAN compatibility
+    
+    The downstream copy_from_user acceleration must also play nice with
+    CONFIG_CPU_SW_DOMAIN_PAN.
+    
+    See: https://github.com/raspberrypi/linux/issues/1381
+    
+    Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+
+diff --git a/arch/arm/lib/uaccess_with_memcpy.c b/arch/arm/lib/uaccess_with_memcpy.c
+index c29df92..6681df5 100644
+--- a/arch/arm/lib/uaccess_with_memcpy.c
++++ b/arch/arm/lib/uaccess_with_memcpy.c
+@@ -186,6 +186,7 @@ out:
+ unsigned long noinline
+ __copy_from_user_memcpy(void *to, const void __user *from, unsigned long n)
+ {
++	unsigned long ua_flags;
+ 	int atomic;
+ 
+ 	if (unlikely(segment_eq(get_fs(), KERNEL_DS))) {
+@@ -217,7 +218,9 @@ __copy_from_user_memcpy(void *to, const void __user *from, unsigned long n)
+ 		if (tocopy > n)
+ 			tocopy = n;
+ 
++		ua_flags = uaccess_save_and_enable();
+ 		memcpy(to, (const void *)from, tocopy);
++		uaccess_restore(ua_flags);
+ 		to += tocopy;
+ 		from += tocopy;
+ 		n -= tocopy;
+@@ -261,9 +264,14 @@ arm_copy_from_user(void *to, const void __user *from, unsigned long n)
+ 	 * With frame pointer disabled, tail call optimization kicks in
+ 	 * as well making this test almost invisible.
+ 	 */
+-	if (n < COPY_FROM_USER_THRESHOLD)
+-		return __copy_from_user_std(to, from, n);
+-	return __copy_from_user_memcpy(to, from, n);
++	if (n < COPY_TO_USER_THRESHOLD) {
++		unsigned long ua_flags = uaccess_save_and_enable();
++		n = __copy_from_user_std(to, from, n);
++		uaccess_restore(ua_flags);
++	} else {
++		n = __copy_from_user_memcpy(to, from, n);
++	}
++	return n;
+ }
+ 	
+ static unsigned long noinline
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1215_a160443a0d967ea6394cd0d1b7a0ab8ef2da3ff1.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1215_a160443a0d967ea6394cd0d1b7a0ab8ef2da3ff1.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
