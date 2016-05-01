@@ -818,5 +818,5 @@ clean-files	:= *.dtb
 
 # Enable fixups to support overlays on BCM2708 platforms
 ifeq ($(RPI_DT_OVERLAYS),y)
-	DTC_FLAGS ?= -@
+	DTC_FLAGS ?= -@ -H epapr
 endif
