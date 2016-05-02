@@ -1,0 +1,64 @@
+commit 4fe401d63051c524e45d2a1c57bf1e34ecc19a7b
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Sun Feb 14 17:51:37 2016 -0200
+
+    saa7134: Fix bytesperline not being set correctly for planar formats
+    
+    commit 3e71da19f9dc22e39a755d6ae9678661abb66adc upstream.
+    
+    bytesperline should be the bytesperline for the first plane for planar
+    formats, not that of all planes combined.
+    
+    This fixes a crash in xawtv caused by the wrong bpl.
+    
+    BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1305389
+    Reported-and-tested-by: Stas Sergeev <stsp@list.ru>
+    
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 518086c..15e56c0 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1219,10 +1219,13 @@ static int saa7134_g_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.height       = dev->height;
+ 	f->fmt.pix.field        = dev->field;
+ 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
+-	f->fmt.pix.bytesperline =
+-		(f->fmt.pix.width * dev->fmt->depth) >> 3;
++	if (dev->fmt->planar)
++		f->fmt.pix.bytesperline = f->fmt.pix.width;
++	else
++		f->fmt.pix.bytesperline =
++			(f->fmt.pix.width * dev->fmt->depth) / 8;
+ 	f->fmt.pix.sizeimage =
+-		f->fmt.pix.height * f->fmt.pix.bytesperline;
++		(f->fmt.pix.height * f->fmt.pix.width * dev->fmt->depth) / 8;
+ 	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
+ 	return 0;
+ }
+@@ -1298,10 +1301,13 @@ static int saa7134_try_fmt_vid_cap(struct file *file, void *priv,
+ 	if (f->fmt.pix.height > maxh)
+ 		f->fmt.pix.height = maxh;
+ 	f->fmt.pix.width &= ~0x03;
+-	f->fmt.pix.bytesperline =
+-		(f->fmt.pix.width * fmt->depth) >> 3;
++	if (fmt->planar)
++		f->fmt.pix.bytesperline = f->fmt.pix.width;
++	else
++		f->fmt.pix.bytesperline =
++			(f->fmt.pix.width * fmt->depth) / 8;
+ 	f->fmt.pix.sizeimage =
+-		f->fmt.pix.height * f->fmt.pix.bytesperline;
++		(f->fmt.pix.height * f->fmt.pix.width * fmt->depth) / 8;
+ 	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
+ 
+ 	return 0;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1336_4fe401d63051c524e45d2a1c57bf1e34ecc19a7b.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1336_4fe401d63051c524e45d2a1c57bf1e34ecc19a7b.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

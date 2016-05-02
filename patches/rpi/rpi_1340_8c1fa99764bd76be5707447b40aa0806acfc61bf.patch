@@ -1,0 +1,92 @@
+commit 8c1fa99764bd76be5707447b40aa0806acfc61bf
+Author: Tiffany Lin <tiffany.lin@mediatek.com>
+Date:   Tue Jan 19 05:56:50 2016 -0200
+
+    media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32
+    
+    commit 7df5ab8774aa383c6d2bff00688d004585d96dfd upstream.
+    
+    In v4l2-compliance utility, test QUERYBUF required correct length
+    value to go through each planar to check planar's length in
+    multi-planar buffer type
+    
+    Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+    Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 327e83a..f38c076 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -415,7 +415,8 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		get_user(kp->index, &up->index) ||
+ 		get_user(kp->type, &up->type) ||
+ 		get_user(kp->flags, &up->flags) ||
+-		get_user(kp->memory, &up->memory))
++		get_user(kp->memory, &up->memory) ||
++		get_user(kp->length, &up->length))
+ 			return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_OUTPUT(kp->type))
+@@ -427,9 +428,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 			return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+-		if (get_user(kp->length, &up->length))
+-			return -EFAULT;
+-
+ 		num_planes = kp->length;
+ 		if (num_planes == 0) {
+ 			kp->m.planes = NULL;
+@@ -462,16 +460,14 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
+-			if (get_user(kp->length, &up->length) ||
+-				get_user(kp->m.offset, &up->m.offset))
++			if (get_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+ 			{
+ 			compat_long_t tmp;
+ 
+-			if (get_user(kp->length, &up->length) ||
+-			    get_user(tmp, &up->m.userptr))
++			if (get_user(tmp, &up->m.userptr))
+ 				return -EFAULT;
+ 
+ 			kp->m.userptr = (unsigned long)compat_ptr(tmp);
+@@ -513,7 +509,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+ 		put_user(kp->reserved2, &up->reserved2) ||
+-		put_user(kp->reserved, &up->reserved))
++		put_user(kp->reserved, &up->reserved) ||
++		put_user(kp->length, &up->length))
+ 			return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+@@ -536,13 +533,11 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
+-			if (put_user(kp->length, &up->length) ||
+-				put_user(kp->m.offset, &up->m.offset))
++			if (put_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+-			if (put_user(kp->length, &up->length) ||
+-				put_user(kp->m.userptr, &up->m.userptr))
++			if (put_user(kp->m.userptr, &up->m.userptr))
+ 				return -EFAULT;
+ 			break;
+ 		case V4L2_MEMORY_OVERLAY:
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1340_8c1fa99764bd76be5707447b40aa0806acfc61bf.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1340_8c1fa99764bd76be5707447b40aa0806acfc61bf.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

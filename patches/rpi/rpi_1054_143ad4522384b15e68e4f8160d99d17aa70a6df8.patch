@@ -1,0 +1,26 @@
+commit 143ad4522384b15e68e4f8160d99d17aa70a6df8
+Author: Marc Kleine-Budde <mkl@blackshift.org>
+Date:   Sat Sep 12 17:29:59 2015 +0200
+
+    rtl8192c_rf6052: PHY_RFShadowRefresh(): fix off-by-one
+    
+    Signed-off-by: Marc Kleine-Budde <mkl@blackshift.org>
+
+diff --git a/drivers/net/wireless/realtek/rtl8192cu/hal/rtl8192c/rtl8192c_rf6052.c b/drivers/net/wireless/realtek/rtl8192cu/hal/rtl8192c/rtl8192c_rf6052.c
+index d4e92f8..a3cd013 100644
+--- a/drivers/net/wireless/realtek/rtl8192cu/hal/rtl8192c/rtl8192c_rf6052.c
++++ b/drivers/net/wireless/realtek/rtl8192cu/hal/rtl8192c/rtl8192c_rf6052.c
+@@ -1015,7 +1015,7 @@ PHY_RFShadowRefresh(
+ 
+ 	for (eRFPath = 0; eRFPath < RF6052_MAX_PATH; eRFPath++)
+ 	{
+-		for (Offset = 0; Offset <= RF6052_MAX_REG; Offset++)
++		for (Offset = 0; Offset < RF6052_MAX_REG; Offset++)
+ 		{
+ 			RF_Shadow[eRFPath][Offset].Value = 0;
+ 			RF_Shadow[eRFPath][Offset].Compare = _FALSE;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1054_143ad4522384b15e68e4f8160d99d17aa70a6df8.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1054_143ad4522384b15e68e4f8160d99d17aa70a6df8.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

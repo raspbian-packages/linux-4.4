@@ -1,0 +1,39 @@
+commit 608377369dcebfa0dc9506a4f17d008bc93bb5b9
+Author: Dan Carpenter <dan.carpenter@oracle.com>
+Date:   Wed Jan 20 12:54:51 2016 +0300
+
+    EDAC, amd64_edac: Shift wrapping issue in f1x_get_norm_dct_addr()
+    
+    commit 6f3508f61c814ee852c199988a62bd954c50dfc1 upstream.
+    
+    dct_sel_base_off is declared as a u64 but we're only using the lower 32
+    bits because of a shift wrapping bug. This can possibly truncate the
+    upper 16 bits of DctSelBaseOffset[47:26], causing us to misdecode the CS
+    row.
+    
+    Fixes: c8e518d5673d ('amd64_edac: Sanitize f10_get_base_addr_offset')
+    Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+    Cc: Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>
+    Cc: linux-edac <linux-edac@vger.kernel.org>
+    Link: http://lkml.kernel.org/r/20160120095451.GB19898@mwanda
+    Signed-off-by: Borislav Petkov <bp@suse.de>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/edac/amd64_edac.c b/drivers/edac/amd64_edac.c
+index 9eee13e..d87a475 100644
+--- a/drivers/edac/amd64_edac.c
++++ b/drivers/edac/amd64_edac.c
+@@ -1452,7 +1452,7 @@ static u64 f1x_get_norm_dct_addr(struct amd64_pvt *pvt, u8 range,
+ 	u64 chan_off;
+ 	u64 dram_base		= get_dram_base(pvt, range);
+ 	u64 hole_off		= f10_dhar_offset(pvt);
+-	u64 dct_sel_base_off	= (pvt->dct_sel_hi & 0xFFFFFC00) << 16;
++	u64 dct_sel_base_off	= (u64)(pvt->dct_sel_hi & 0xFFFFFC00) << 16;
+ 
+ 	if (hi_rng) {
+ 		/*
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1264_608377369dcebfa0dc9506a4f17d008bc93bb5b9.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1264_608377369dcebfa0dc9506a4f17d008bc93bb5b9.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

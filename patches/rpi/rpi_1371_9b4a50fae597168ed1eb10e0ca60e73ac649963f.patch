@@ -1,0 +1,38 @@
+commit 9b4a50fae597168ed1eb10e0ca60e73ac649963f
+Author: Dmitri Epshtein <dima@marvell.com>
+Date:   Sat Mar 12 18:44:18 2016 +0100
+
+    net: mvneta: enable change MAC address when interface is up
+    
+    commit 928b6519afeb2a5e2dc61154380b545ed66c476a upstream.
+    
+    Function eth_prepare_mac_addr_change() is called as part of MAC
+    address change. This function check if interface is running.
+    To enable change MAC address when interface is running:
+    IFF_LIVE_ADDR_CHANGE flag must be set to dev->priv_flags field
+    
+    Fixes: c5aff18204da ("net: mvneta: driver for Marvell Armada 370/XP
+    network unit")
+    Signed-off-by: Dmitri Epshtein <dima@marvell.com>
+    Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/net/ethernet/marvell/mvneta.c b/drivers/net/ethernet/marvell/mvneta.c
+index ed622fa..a4ac6fe 100644
+--- a/drivers/net/ethernet/marvell/mvneta.c
++++ b/drivers/net/ethernet/marvell/mvneta.c
+@@ -3404,7 +3404,7 @@ static int mvneta_probe(struct platform_device *pdev)
+ 	dev->features = NETIF_F_SG | NETIF_F_IP_CSUM | NETIF_F_TSO;
+ 	dev->hw_features |= dev->features;
+ 	dev->vlan_features |= dev->features;
+-	dev->priv_flags |= IFF_UNICAST_FLT;
++	dev->priv_flags |= IFF_UNICAST_FLT | IFF_LIVE_ADDR_CHANGE;
+ 	dev->gso_max_segs = MVNETA_MAX_TSO_SEGS;
+ 
+ 	err = register_netdev(dev);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1371_9b4a50fae597168ed1eb10e0ca60e73ac649963f.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1371_9b4a50fae597168ed1eb10e0ca60e73ac649963f.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
