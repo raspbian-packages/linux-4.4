@@ -1,0 +1,56 @@
+commit 75efb5fe5ce23f72ef8641f593b5829152c6203c
+Author: Vladimir Zapolskiy <vz@mleia.com>
+Date:   Sun Mar 6 03:22:04 2016 +0200
+
+    crypto: ux500 - fix checks of error code returned by devm_ioremap_resource()
+    
+    commit b62917a2622ebcb03a500ef20da47be80d8c8951 upstream.
+    
+    The change fixes potential oops while accessing iomem on invalid
+    address, if devm_ioremap_resource() fails due to some reason.
+    
+    The devm_ioremap_resource() function returns ERR_PTR() and never
+    returns NULL, which makes useless a following check for NULL.
+    
+    Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
+    Fixes: 5a4eea2658c93 ("crypto: ux500 - Use devm_xxx() managed function")
+    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/crypto/ux500/cryp/cryp_core.c b/drivers/crypto/ux500/cryp/cryp_core.c
+index 4c243c1..790f7ca 100644
+--- a/drivers/crypto/ux500/cryp/cryp_core.c
++++ b/drivers/crypto/ux500/cryp/cryp_core.c
+@@ -1440,9 +1440,9 @@ static int ux500_cryp_probe(struct platform_device *pdev)
+ 
+ 	device_data->phybase = res->start;
+ 	device_data->base = devm_ioremap_resource(dev, res);
+-	if (!device_data->base) {
++	if (IS_ERR(device_data->base)) {
+ 		dev_err(dev, "[%s]: ioremap failed!", __func__);
+-		ret = -ENOMEM;
++		ret = PTR_ERR(device_data->base);
+ 		goto out;
+ 	}
+ 
+diff --git a/drivers/crypto/ux500/hash/hash_core.c b/drivers/crypto/ux500/hash/hash_core.c
+index f47d112..66b1c33 100644
+--- a/drivers/crypto/ux500/hash/hash_core.c
++++ b/drivers/crypto/ux500/hash/hash_core.c
+@@ -1675,9 +1675,9 @@ static int ux500_hash_probe(struct platform_device *pdev)
+ 
+ 	device_data->phybase = res->start;
+ 	device_data->base = devm_ioremap_resource(dev, res);
+-	if (!device_data->base) {
++	if (IS_ERR(device_data->base)) {
+ 		dev_err(dev, "%s: ioremap() failed!\n", __func__);
+-		ret = -ENOMEM;
++		ret = PTR_ERR(device_data->base);
+ 		goto out;
+ 	}
+ 	spin_lock_init(&device_data->ctx_lock);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1318_75efb5fe5ce23f72ef8641f593b5829152c6203c.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1318_75efb5fe5ce23f72ef8641f593b5829152c6203c.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

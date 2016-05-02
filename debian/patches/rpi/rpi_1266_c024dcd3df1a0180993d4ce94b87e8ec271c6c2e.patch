@@ -1,0 +1,40 @@
+commit c024dcd3df1a0180993d4ce94b87e8ec271c6c2e
+Author: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date:   Thu Mar 10 10:32:21 2016 +0100
+
+    s390/cpumf: add missing lpp magic initialization
+    
+    commit 8f100bb1ff27873dd71f636da670e503b9ade3c6 upstream.
+    
+    Add the missing lpp magic initialization for cpu 0. Without this all
+    samples on cpu 0 do not have the most significant bit set in the
+    program parameter field, which we use to distinguish between guest and
+    host samples if the pid is also 0.
+    
+    We did initialize the lpp magic in the absolute zero lowcore but
+    forgot that when switching to the allocated lowcore on cpu 0 only.
+    
+    Reported-by: Shu Juan Zhang <zhshuj@cn.ibm.com>
+    Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
+    Fixes: e22cf8ca6f75 ("s390/cpumf: rework program parameter setting to detect guest samples")
+    Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+    Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/s390/kernel/setup.c b/arch/s390/kernel/setup.c
+index c837bca..1f581eb 100644
+--- a/arch/s390/kernel/setup.c
++++ b/arch/s390/kernel/setup.c
+@@ -329,6 +329,7 @@ static void __init setup_lowcore(void)
+ 		+ PAGE_SIZE - STACK_FRAME_OVERHEAD - sizeof(struct pt_regs);
+ 	lc->current_task = (unsigned long) init_thread_union.thread_info.task;
+ 	lc->thread_info = (unsigned long) &init_thread_union;
++	lc->lpp = LPP_MAGIC;
+ 	lc->machine_flags = S390_lowcore.machine_flags;
+ 	lc->stfl_fac_list = S390_lowcore.stfl_fac_list;
+ 	memcpy(lc->stfle_fac_list, S390_lowcore.stfle_fac_list,
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1266_c024dcd3df1a0180993d4ce94b87e8ec271c6c2e.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1266_c024dcd3df1a0180993d4ce94b87e8ec271c6c2e.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

@@ -1,0 +1,37 @@
+commit 19e0783ae96837e30e94acdb0cc4ae935338a969
+Author: Chris Paterson <chris.paterson2@renesas.com>
+Date:   Wed Feb 10 14:07:01 2016 +0000
+
+    mmc: sh_mmcif: Correct TX DMA channel allocation
+    
+    commit a32ef81c9889c9554a3c4b465c4ee7b2d26c6b10 upstream.
+    
+    Commit 27cbd7e815a8 ("mmc: sh_mmcif: rework dma channel handling")
+    introduced a typo causing the TX DMA channel allocation to be overwritten
+    by the requested RX DMA channel.
+    
+    Fixes: 27cbd7e815a8 ("mmc: sh_mmcif: rework dma channel handling")
+    Signed-off-by: Chris Paterson <chris.paterson2@renesas.com>
+    Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+    Acked-by: Arnd Bergmann <arnd@arndb.de>
+    Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/mmc/host/sh_mmcif.c b/drivers/mmc/host/sh_mmcif.c
+index 1ca8a13..6234eab3 100644
+--- a/drivers/mmc/host/sh_mmcif.c
++++ b/drivers/mmc/host/sh_mmcif.c
+@@ -445,7 +445,7 @@ static void sh_mmcif_request_dma(struct sh_mmcif_host *host)
+ 							pdata->slave_id_rx);
+ 	} else {
+ 		host->chan_tx = dma_request_slave_channel(dev, "tx");
+-		host->chan_tx = dma_request_slave_channel(dev, "rx");
++		host->chan_rx = dma_request_slave_channel(dev, "rx");
+ 	}
+ 	dev_dbg(dev, "%s: got channel TX %p RX %p\n", __func__, host->chan_tx,
+ 		host->chan_rx);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1244_19e0783ae96837e30e94acdb0cc4ae935338a969.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1244_19e0783ae96837e30e94acdb0cc4ae935338a969.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

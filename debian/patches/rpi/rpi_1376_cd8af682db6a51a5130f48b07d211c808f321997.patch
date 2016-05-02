@@ -1,0 +1,51 @@
+commit cd8af682db6a51a5130f48b07d211c808f321997
+Author: Max Filippov <jcmvbkbc@gmail.com>
+Date:   Thu Feb 25 23:27:51 2016 +0300
+
+    xtensa: fix preemption in {clear,copy}_user_highpage
+    
+    commit a67cc9aa2dfc6e66addf240bbd79e16e01565e81 upstream.
+    
+    Disabling pagefault makes little sense there, preemption disabling is
+    what was meant.
+    
+    Signed-off-by: Max Filippov <jcmvbkbc@gmail.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/xtensa/mm/cache.c b/arch/xtensa/mm/cache.c
+index d75aa14..1a804a2 100644
+--- a/arch/xtensa/mm/cache.c
++++ b/arch/xtensa/mm/cache.c
+@@ -97,11 +97,11 @@ void clear_user_highpage(struct page *page, unsigned long vaddr)
+ 	unsigned long paddr;
+ 	void *kvaddr = coherent_kvaddr(page, TLBTEMP_BASE_1, vaddr, &paddr);
+ 
+-	pagefault_disable();
++	preempt_disable();
+ 	kmap_invalidate_coherent(page, vaddr);
+ 	set_bit(PG_arch_1, &page->flags);
+ 	clear_page_alias(kvaddr, paddr);
+-	pagefault_enable();
++	preempt_enable();
+ }
+ 
+ void copy_user_highpage(struct page *dst, struct page *src,
+@@ -113,11 +113,11 @@ void copy_user_highpage(struct page *dst, struct page *src,
+ 	void *src_vaddr = coherent_kvaddr(src, TLBTEMP_BASE_2, vaddr,
+ 					  &src_paddr);
+ 
+-	pagefault_disable();
++	preempt_disable();
+ 	kmap_invalidate_coherent(dst, vaddr);
+ 	set_bit(PG_arch_1, &dst->flags);
+ 	copy_page_alias(dst_vaddr, src_vaddr, dst_paddr, src_paddr);
+-	pagefault_enable();
++	preempt_enable();
+ }
+ 
+ #endif /* DCACHE_WAY_SIZE > PAGE_SIZE */
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1376_cd8af682db6a51a5130f48b07d211c808f321997.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1376_cd8af682db6a51a5130f48b07d211c808f321997.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
