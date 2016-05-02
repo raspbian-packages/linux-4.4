@@ -1,0 +1,32 @@
+commit d3a1dcc1ce28233707c395b11cd2403ba22aebda
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Fri Feb 27 15:10:24 2015 +0000
+
+    enc28j60: Add device tree compatible string and an overlay
+
+diff --git a/drivers/net/ethernet/microchip/enc28j60.c b/drivers/net/ethernet/microchip/enc28j60.c
+index 86ea17e..a1b20c1 100644
+--- a/drivers/net/ethernet/microchip/enc28j60.c
++++ b/drivers/net/ethernet/microchip/enc28j60.c
+@@ -1630,9 +1630,16 @@ static int enc28j60_remove(struct spi_device *spi)
+ 	return 0;
+ }
+ 
++static const struct of_device_id enc28j60_of_match[] = {
++	{ .compatible = "microchip,enc28j60", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, enc28j60_of_match);
++
+ static struct spi_driver enc28j60_driver = {
+ 	.driver = {
+ 		   .name = DRV_NAME,
++		   .of_match_table = enc28j60_of_match,
+ 	 },
+ 	.probe = enc28j60_probe,
+ 	.remove = enc28j60_remove,
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1073_d3a1dcc1ce28233707c395b11cd2403ba22aebda.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1073_d3a1dcc1ce28233707c395b11cd2403ba22aebda.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

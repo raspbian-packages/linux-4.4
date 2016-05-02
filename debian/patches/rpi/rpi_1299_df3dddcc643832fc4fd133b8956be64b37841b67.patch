@@ -1,0 +1,32 @@
+commit df3dddcc643832fc4fd133b8956be64b37841b67
+Author: Martyn Welch <martyn.welch@collabora.co.uk>
+Date:   Tue Mar 29 17:47:29 2016 +0100
+
+    USB: serial: cp210x: Adding GE Healthcare Device ID
+    
+    commit cddc9434e3dcc37a85c4412fb8e277d3a582e456 upstream.
+    
+    The CP2105 is used in the GE Healthcare Remote Alarm Box, with the
+    Manufacturer ID of 0x1901 and Product ID of 0x0194.
+    
+    Signed-off-by: Martyn Welch <martyn.welch@collabora.co.uk>
+    Signed-off-by: Johan Hovold <johan@kernel.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/usb/serial/cp210x.c b/drivers/usb/serial/cp210x.c
+index 7a76fe4..bdc0f2f 100644
+--- a/drivers/usb/serial/cp210x.c
++++ b/drivers/usb/serial/cp210x.c
+@@ -164,6 +164,7 @@ static const struct usb_device_id id_table[] = {
+ 	{ USB_DEVICE(0x18EF, 0xE025) }, /* ELV Marble Sound Board 1 */
+ 	{ USB_DEVICE(0x1901, 0x0190) }, /* GE B850 CP2105 Recorder interface */
+ 	{ USB_DEVICE(0x1901, 0x0193) }, /* GE B650 CP2104 PMC interface */
++	{ USB_DEVICE(0x1901, 0x0194) },	/* GE Healthcare Remote Alarm Box */
+ 	{ USB_DEVICE(0x19CF, 0x3000) }, /* Parrot NMEA GPS Flight Recorder */
+ 	{ USB_DEVICE(0x1ADB, 0x0001) }, /* Schweitzer Engineering C662 Cable */
+ 	{ USB_DEVICE(0x1B1C, 0x1C00) }, /* Corsair USB Dongle */
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1299_df3dddcc643832fc4fd133b8956be64b37841b67.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1299_df3dddcc643832fc4fd133b8956be64b37841b67.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

@@ -1,0 +1,45 @@
+commit a918d2bcea6aab6e671bfb0901cbecc3cf68fca1
+Author: Insu Yun <wuninsu@gmail.com>
+Date:   Wed Jan 6 12:44:01 2016 -0500
+
+    ipr: Fix out-of-bounds null overwrite
+    
+    commit d63c7dd5bcb9441af0526d370c43a65ca2c980d9 upstream.
+    
+    Return value of snprintf is not bound by size value, 2nd argument.
+    (https://www.kernel.org/doc/htmldocs/kernel-api/API-snprintf.html).
+    Return value is number of printed chars, can be larger than 2nd
+    argument.  Therefore, it can write null byte out of bounds ofbuffer.
+    Since snprintf puts null, it does not need to put additional null byte.
+    
+    Signed-off-by: Insu Yun <wuninsu@gmail.com>
+    Reviewed-by: Shane Seymour <shane.seymour@hpe.com>
+    Signed-off-by: Martin K. Petersen <martin.petersen@oracle.com>
+    Cc: Ben Hutchings <ben@decadent.org.uk>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/scsi/ipr.c b/drivers/scsi/ipr.c
+index 536cd5a..1c3759b 100644
+--- a/drivers/scsi/ipr.c
++++ b/drivers/scsi/ipr.c
+@@ -4003,13 +4003,12 @@ static ssize_t ipr_store_update_fw(struct device *dev,
+ 	struct ipr_sglist *sglist;
+ 	char fname[100];
+ 	char *src;
+-	int len, result, dnld_size;
++	int result, dnld_size;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EACCES;
+ 
+-	len = snprintf(fname, 99, "%s", buf);
+-	fname[len-1] = '\0';
++	snprintf(fname, sizeof(fname), "%s", buf);
+ 
+ 	if (request_firmware(&fw_entry, fname, &ioa_cfg->pdev->dev)) {
+ 		dev_err(&ioa_cfg->pdev->dev, "Firmware file %s not found\n", fname);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1393_a918d2bcea6aab6e671bfb0901cbecc3cf68fca1.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1393_a918d2bcea6aab6e671bfb0901cbecc3cf68fca1.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

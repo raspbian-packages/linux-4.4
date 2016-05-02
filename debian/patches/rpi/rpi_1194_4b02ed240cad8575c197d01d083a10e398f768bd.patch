@@ -1,0 +1,30 @@
+commit 4b02ed240cad8575c197d01d083a10e398f768bd
+Author: Eric Anholt <eric@anholt.net>
+Date:   Mon Jan 25 13:05:00 2016 -0800
+
+    drm/vc4: Validate that WAIT_BO padding is cleared.
+    
+    This is ABI future-proofing if we ever want to extend the pad to mean
+    something.
+    
+    Signed-off-by: Eric Anholt <eric@anholt.net>
+
+diff --git a/drivers/gpu/drm/vc4/vc4_gem.c b/drivers/gpu/drm/vc4/vc4_gem.c
+index 1243f4e..849d374 100644
+--- a/drivers/gpu/drm/vc4/vc4_gem.c
++++ b/drivers/gpu/drm/vc4/vc4_gem.c
+@@ -761,6 +761,9 @@ vc4_wait_bo_ioctl(struct drm_device *dev, void *data,
+ 	struct drm_gem_object *gem_obj;
+ 	struct vc4_bo *bo;
+ 
++	if (args->pad != 0)
++		return -EINVAL;
++
+ 	gem_obj = drm_gem_object_lookup(dev, file_priv, args->handle);
+ 	if (!gem_obj) {
+ 		DRM_ERROR("Failed to look up GEM BO %d\n", args->handle);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1194_4b02ed240cad8575c197d01d083a10e398f768bd.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1194_4b02ed240cad8575c197d01d083a10e398f768bd.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

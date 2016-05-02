@@ -1,0 +1,37 @@
+commit 291e2b3900da45dcc9c58e264f960fcb822bd07a
+Author: Joe Thornber <ejt@redhat.com>
+Date:   Tue Mar 1 10:58:44 2016 +0000
+
+    dm thin metadata: don't issue prefetches if a transaction abort has failed
+    
+    commit 2eae9e4489b4cf83213fa3bd508b5afca3f01780 upstream.
+    
+    If a transaction abort has failed then we can no longer use the metadata
+    device.  Typically this happens if the superblock is unreadable.
+    
+    This fix addresses a crash seen during metadata device failure testing.
+    
+    Fixes: 8a01a6af75 ("dm thin: prefetch missing metadata pages")
+    Signed-off-by: Joe Thornber <ejt@redhat.com>
+    Signed-off-by: Mike Snitzer <snitzer@redhat.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/md/dm-thin-metadata.c b/drivers/md/dm-thin-metadata.c
+index c219a05..911ada6 100644
+--- a/drivers/md/dm-thin-metadata.c
++++ b/drivers/md/dm-thin-metadata.c
+@@ -1943,5 +1943,8 @@ bool dm_pool_metadata_needs_check(struct dm_pool_metadata *pmd)
+ 
+ void dm_pool_issue_prefetches(struct dm_pool_metadata *pmd)
+ {
+-	dm_tm_issue_prefetches(pmd->tm);
++	down_read(&pmd->root_lock);
++	if (!pmd->fail_io)
++		dm_tm_issue_prefetches(pmd->tm);
++	up_read(&pmd->root_lock);
+ }
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1287_291e2b3900da45dcc9c58e264f960fcb822bd07a.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1287_291e2b3900da45dcc9c58e264f960fcb822bd07a.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

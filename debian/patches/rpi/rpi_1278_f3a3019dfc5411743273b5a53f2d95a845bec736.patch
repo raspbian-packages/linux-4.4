@@ -1,0 +1,49 @@
+commit f3a3019dfc5411743273b5a53f2d95a845bec736
+Author: Raghava Aditya Renukunta <raghavaaditya.renukunta@pmcs.com>
+Date:   Wed Feb 3 15:06:02 2016 -0800
+
+    aacraid: Fix memory leak in aac_fib_map_free
+    
+    commit f88fa79a61726ce9434df9b4aede36961f709f17 upstream.
+    
+    aac_fib_map_free() calls pci_free_consistent() without checking that
+    dev->hw_fib_va is not NULL and dev->max_fib_size is not zero.If they are
+    indeed NULL/0, this will result in a hang as pci_free_consistent() will
+    attempt to invalidate cache for the entire 64-bit address space
+    (which would take a very long time).
+    
+    Fixed by adding a check to make sure that dev->hw_fib_va and
+    dev->max_fib_size are not NULL and 0 respectively.
+    
+    Fixes: 9ad5204d6 - "[SCSI]aacraid: incorrect dma mapping mask during blinked recover or user initiated reset"
+    Signed-off-by: Raghava Aditya Renukunta <raghavaaditya.renukunta@pmcs.com>
+    Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+    Reviewed-by: Tomas Henzl <thenzl@redhat.com>
+    Signed-off-by: Martin K. Petersen <martin.petersen@oracle.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/scsi/aacraid/commsup.c b/drivers/scsi/aacraid/commsup.c
+index e9b4c11..4cbf549 100644
+--- a/drivers/scsi/aacraid/commsup.c
++++ b/drivers/scsi/aacraid/commsup.c
+@@ -83,9 +83,12 @@ static int fib_map_alloc(struct aac_dev *dev)
+ 
+ void aac_fib_map_free(struct aac_dev *dev)
+ {
+-	pci_free_consistent(dev->pdev,
+-	  dev->max_fib_size * (dev->scsi_host_ptr->can_queue + AAC_NUM_MGT_FIB),
+-	  dev->hw_fib_va, dev->hw_fib_pa);
++	if (dev->hw_fib_va && dev->max_fib_size) {
++		pci_free_consistent(dev->pdev,
++		(dev->max_fib_size *
++		(dev->scsi_host_ptr->can_queue + AAC_NUM_MGT_FIB)),
++		dev->hw_fib_va, dev->hw_fib_pa);
++	}
+ 	dev->hw_fib_va = NULL;
+ 	dev->hw_fib_pa = 0;
+ }
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1278_f3a3019dfc5411743273b5a53f2d95a845bec736.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1278_f3a3019dfc5411743273b5a53f2d95a845bec736.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
