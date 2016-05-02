@@ -1,0 +1,36 @@
+commit 1f841628aca5d4133ad2aba0e2f279c8ab65b9d8
+Author: Max Filippov <jcmvbkbc@gmail.com>
+Date:   Thu Mar 3 18:34:29 2016 +0300
+
+    xtensa: clear all DBREAKC registers on start
+    
+    commit 7de7ac785ae18a2cdc78d7560f48e3213d9ea0ab upstream.
+    
+    There are XCHAL_NUM_DBREAK registers, clear them all.
+    This also fixes cryptic assembler error message with binutils 2.25 when
+    XCHAL_NUM_DBREAK is 0:
+    
+      as: out of memory allocating 18446744073709551575 bytes after a total
+      of 495616 bytes
+    
+    Signed-off-by: Max Filippov <jcmvbkbc@gmail.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/xtensa/kernel/head.S b/arch/xtensa/kernel/head.S
+index 9ed5564..05e1df9 100644
+--- a/arch/xtensa/kernel/head.S
++++ b/arch/xtensa/kernel/head.S
+@@ -128,7 +128,7 @@ ENTRY(_startup)
+ 	wsr	a0, icountlevel
+ 
+ 	.set	_index, 0
+-	.rept	XCHAL_NUM_DBREAK - 1
++	.rept	XCHAL_NUM_DBREAK
+ 	wsr	a0, SREG_DBREAKC + _index
+ 	.set	_index, _index + 1
+ 	.endr
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1377_1f841628aca5d4133ad2aba0e2f279c8ab65b9d8.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1377_1f841628aca5d4133ad2aba0e2f279c8ab65b9d8.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

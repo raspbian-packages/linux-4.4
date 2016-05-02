@@ -1,0 +1,53 @@
+commit a4ecd0324b3cdea3abc4b0f5d7e2829530400317
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Mar 6 02:39:53 2016 +0100
+
+    drm/radeon: Don't drop DP 2.7 Ghz link setup on some cards.
+    
+    commit 459ee1c3fd097ab56ababd8ff4bb7ef6a792de33 upstream.
+    
+    As observed on Apple iMac10,1, DCE-3.2, RV-730,
+    link rate of 2.7 Ghz is not selected, because
+    the args.v1.ucConfig flag setting for 2.7 Ghz
+    gets overwritten by a following assignment of
+    the transmitter to use.
+    
+    Move link rate setup a few lines down to fix this.
+    In practice this didn't have any positive or
+    negative effect on display setup on the tested
+    iMac10,1 so i don't know if backporting to stable
+    makes sense or not.
+    
+    Signed-off-by: Mario Kleiner <mario.kleiner.de@gmail.com>
+    Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/gpu/drm/radeon/atombios_encoders.c b/drivers/gpu/drm/radeon/atombios_encoders.c
+index bb29214..adf74f4 100644
+--- a/drivers/gpu/drm/radeon/atombios_encoders.c
++++ b/drivers/gpu/drm/radeon/atombios_encoders.c
+@@ -892,8 +892,6 @@ atombios_dig_encoder_setup2(struct drm_encoder *encoder, int action, int panel_m
+ 			else
+ 				args.v1.ucLaneNum = 4;
+ 
+-			if (ENCODER_MODE_IS_DP(args.v1.ucEncoderMode) && (dp_clock == 270000))
+-				args.v1.ucConfig |= ATOM_ENCODER_CONFIG_DPLINKRATE_2_70GHZ;
+ 			switch (radeon_encoder->encoder_id) {
+ 			case ENCODER_OBJECT_ID_INTERNAL_UNIPHY:
+ 				args.v1.ucConfig = ATOM_ENCODER_CONFIG_V2_TRANSMITTER1;
+@@ -910,6 +908,10 @@ atombios_dig_encoder_setup2(struct drm_encoder *encoder, int action, int panel_m
+ 				args.v1.ucConfig |= ATOM_ENCODER_CONFIG_LINKB;
+ 			else
+ 				args.v1.ucConfig |= ATOM_ENCODER_CONFIG_LINKA;
++
++			if (ENCODER_MODE_IS_DP(args.v1.ucEncoderMode) && (dp_clock == 270000))
++				args.v1.ucConfig |= ATOM_ENCODER_CONFIG_DPLINKRATE_2_70GHZ;
++
+ 			break;
+ 		case 2:
+ 		case 3:
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1397_a4ecd0324b3cdea3abc4b0f5d7e2829530400317.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1397_a4ecd0324b3cdea3abc4b0f5d7e2829530400317.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

@@ -1,0 +1,124 @@
+commit 4adf0d94785a304b51f8205ecade7bc97b26a00b
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Mon Mar 7 09:53:03 2016 +0000
+
+    BCM270X_DT: Add pi3-miniuart-bt DT overlay
+    
+    Switch Pi3 Bluetooth function to use the mini-UART (ttyS0) and restore
+    UART0/ttyAMA0 over GPIOs 14 & 15. Note that this may reduce the maximum
+    usable baudrate.
+    
+    It is also necessary to edit /lib/systemd/system/hciuart.server and
+    replace ttyAMA0 with ttyS0.
+    
+    If cmdline.txt uses the alias serial0 to refer to the user-accessable port
+    then the firmware will replace with the appropriate port whether or not
+    this overlay is used.
+    
+    Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index 2c2b2fa..687cc7c 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -40,6 +40,7 @@ dtb-$(RPI_DT_OVERLAYS) += mcp2515-can1-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += mmc-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += mz61581-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pi3-disable-bt-overlay.dtb
++dtb-$(RPI_DT_OVERLAYS) += pi3-miniuart-bt-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += piscreen-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += piscreen2r-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pitft28-capacitive-overlay.dtb
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 4f0be23..6a7aa31 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -504,6 +504,16 @@ Load:   dtoverlay=pi3-disable-bt
+ Params: <None>
+ 
+ 
++Name:   pi3-miniuart-bt
++Info:   Switch Pi3 Bluetooth function to use the mini-UART (ttyS0) and restore
++        UART0/ttyAMA0 over GPIOs 14 & 15. Note that this may reduce the maximum
++        usable baudrate.
++        N.B. It is also necessary to edit /lib/systemd/system/hciuart.server
++        and replace ttyAMA0 with ttyS0.
++Load:   dtoverlay=pi3-miniuart-bt
++Params: <None>
++
++
+ Name:   piscreen
+ Info:   PiScreen display by OzzMaker.com
+ Load:   dtoverlay=piscreen,<param>=<val>
+diff --git a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+new file mode 100644
+index 0000000..ae1292a
+--- /dev/null
++++ b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+@@ -0,0 +1,61 @@
++/dts-v1/;
++/plugin/;
++
++/* Switch Pi3 Bluetooth function to use the mini-UART (ttyS0) and restore
++   UART0/ttyAMA0 over GPIOs 14 & 15. Note that this may reduce the maximum
++   usable baudrate.
++
++   It is also necessary to edit /lib/systemd/system/hciuart.server and
++   replace ttyAMA0 with ttyS0.
++
++   If cmdline.txt uses the alias serial0 to refer to the user-accessable port
++   then the firmware will replace with the appropriate port whether or not
++   this overlay is used.
++*/
++
++/{
++	compatible = "brcm,bcm2708";
++
++	fragment@0 {
++		target = <&uart0>;
++		__overlay__ {
++			pinctrl-names = "default";
++			pinctrl-0 = <&uart0_pins>;
++			status = "okay";
++		};
++	};
++
++	fragment@1 {
++		target = <&uart1>;
++		__overlay__ {
++			pinctrl-names = "default";
++			pinctrl-0 = <&uart1_pins>;
++			status = "okay";
++		};
++	};
++
++	fragment@2 {
++		target = <&gpio>;
++		__overlay__ {
++			uart0_pins: uart0_pins {
++				brcm,pins = <14 15>;
++				brcm,function = <4>; /* alt0 */
++				brcm,pull = <0 2>;
++			};
++
++			uart1_pins: uart1_pins {
++				brcm,pins = <32 33>;
++				brcm,function = <2>; /* alt5=UART1 */
++				brcm,pull = <0 0>;
++			};
++		};
++	};
++
++	fragment@3 {
++		target-path = "/aliases";
++		__overlay__ {
++			serial0 = "/soc/uart@7e201000";
++			serial1 = "/soc/uart@7e215040";
++		};
++	};
++};
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1164_4adf0d94785a304b51f8205ecade7bc97b26a00b.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1164_4adf0d94785a304b51f8205ecade7bc97b26a00b.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

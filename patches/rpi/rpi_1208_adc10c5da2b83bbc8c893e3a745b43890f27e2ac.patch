@@ -1,0 +1,96 @@
+commit adc10c5da2b83bbc8c893e3a745b43890f27e2ac
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Sat Mar 19 16:51:37 2016 +0000
+
+    BCM270X_DT: Remove explicit claiming of UART pins
+    
+    It is convenient to be able to map a different function to the UART
+    pins (e.g. DPI for vga666) without having to disable the UART first.
+    
+    Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+index d2d39c6..adba682 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+@@ -57,9 +57,9 @@
+ 	};
+ 
+ 	uart1_pins: uart1_pins {
+-		brcm,pins = <14 15>;
+-		brcm,function = <2>; /* alt5=UART1 */
+-		brcm,pull = <0 2>;
++		brcm,pins;
++		brcm,function;
++		brcm,pull;
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/overlays/pi3-disable-bt-overlay.dts b/arch/arm/boot/dts/overlays/pi3-disable-bt-overlay.dts
+index 05403e2..68f6069 100644
+--- a/arch/arm/boot/dts/overlays/pi3-disable-bt-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pi3-disable-bt-overlay.dts
+@@ -28,13 +28,11 @@
+ 	};
+ 
+ 	fragment@2 {
+-		target = <&gpio>;
++		target = <&uart0_pins>;
+ 		__overlay__ {
+-			uart0_pins: uart0_pins {
+-				brcm,pins = <14 15>;
+-				brcm,function = <4>; /* alt0 */
+-				brcm,pull = <0 2>;
+-			};
++			brcm,pins;
++			brcm,function;
++			brcm,pull;
+ 		};
+ 	};
+ 
+diff --git a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+index 38ed33b..17d04cf 100644
+--- a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+@@ -37,23 +37,24 @@
+ 	};
+ 
+ 	fragment@2 {
+-		target = <&gpio>;
++		target = <&uart0_pins>;
+ 		__overlay__ {
+-			uart0_pins: uart0_pins {
+-				brcm,pins = <14 15>;
+-				brcm,function = <4>; /* alt0 */
+-				brcm,pull = <0 2>;
+-			};
+-
+-			uart1_pins: uart1_pins {
+-				brcm,pins = <32 33>;
+-				brcm,function = <2>; /* alt5=UART1 */
+-				brcm,pull = <0 2>;
+-			};
++			brcm,pins;
++			brcm,function;
++			brcm,pull;
+ 		};
+ 	};
+ 
+ 	fragment@3 {
++		target = <&uart1_pins>;
++		__overlay__ {
++			brcm,pins = <32 33>;
++			brcm,function = <2>; /* alt5=UART1 */
++			brcm,pull = <0 2>;
++		};
++	};
++
++	fragment@4 {
+ 		target-path = "/aliases";
+ 		__overlay__ {
+ 			serial0 = "/soc/uart@7e201000";
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1208_adc10c5da2b83bbc8c893e3a745b43890f27e2ac.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1208_adc10c5da2b83bbc8c893e3a745b43890f27e2ac.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

@@ -1,0 +1,33 @@
+commit c44b175bf03cd74e517f3c98b2cb4896e04202ae
+Author: Paolo Bonzini <pbonzini@redhat.com>
+Date:   Fri Mar 18 16:53:29 2016 +0100
+
+    KVM: VMX: avoid guest hang on invalid invept instruction
+    
+    commit 2849eb4f99d54925c543db12917127f88b3c38ff upstream.
+    
+    A guest executing an invalid invept instruction would hang
+    because the instruction pointer was not updated.
+    
+    Fixes: bfd0a56b90005f8c8a004baf407ad90045c2b11e
+    Reviewed-by: David Matlack <dmatlack@google.com>
+    Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/x86/kvm/vmx.c b/arch/x86/kvm/vmx.c
+index 0958fa2..89d5e02 100644
+--- a/arch/x86/kvm/vmx.c
++++ b/arch/x86/kvm/vmx.c
+@@ -7340,6 +7340,7 @@ static int handle_invept(struct kvm_vcpu *vcpu)
+ 	if (!(types & (1UL << type))) {
+ 		nested_vmx_failValid(vcpu,
+ 				VMXERR_INVALID_OPERAND_TO_INVEPT_INVVPID);
++		skip_emulated_instruction(vcpu);
+ 		return 1;
+ 	}
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1253_c44b175bf03cd74e517f3c98b2cb4896e04202ae.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1253_c44b175bf03cd74e517f3c98b2cb4896e04202ae.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
