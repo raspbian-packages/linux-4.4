@@ -1,0 +1,55 @@
+commit 6be7771fe7242d7d4399545e0c9e2f6f3cd76725
+Author: Wang Nan <wangnan0@huawei.com>
+Date:   Fri Feb 19 11:43:52 2016 +0000
+
+    perf tools: Fix checking asprintf return value
+    
+    commit 26dee028d365fbc0e3326606a8520260b4462381 upstream.
+    
+    According to man pages, asprintf returns -1 when failure. This patch
+    fixes two incorrect return value checker.
+    
+    Signed-off-by: Wang Nan <wangnan0@huawei.com>
+    Cc: Adrian Hunter <adrian.hunter@intel.com>
+    Cc: Alexei Starovoitov <ast@kernel.org>
+    Cc: Brendan Gregg <brendan.d.gregg@gmail.com>
+    Cc: Cody P Schafer <dev@codyps.com>
+    Cc: He Kuang <hekuang@huawei.com>
+    Cc: Jeremie Galarneau <jeremie.galarneau@efficios.com>
+    Cc: Jiri Olsa <jolsa@kernel.org>
+    Cc: Kirill Smelkov <kirr@nexedi.com>
+    Cc: Li Zefan <lizefan@huawei.com>
+    Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+    Cc: Namhyung Kim <namhyung@kernel.org>
+    Cc: Peter Zijlstra <peterz@infradead.org>
+    Cc: Zefan Li <lizefan@huawei.com>
+    Cc: pi3orama@163.com
+    Fixes: ffeb883e5662 ("perf tools: Show proper error message for wrong terms of hw/sw events")
+    Link: http://lkml.kernel.org/r/1455882283-79592-5-git-send-email-wangnan0@huawei.com
+    Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/tools/perf/util/parse-events.c b/tools/perf/util/parse-events.c
+index b48e876..a35db82 100644
+--- a/tools/perf/util/parse-events.c
++++ b/tools/perf/util/parse-events.c
+@@ -2101,11 +2101,11 @@ char *parse_events_formats_error_string(char *additional_terms)
+ 
+ 	/* valid terms */
+ 	if (additional_terms) {
+-		if (!asprintf(&str, "valid terms: %s,%s",
+-			      additional_terms, static_terms))
++		if (asprintf(&str, "valid terms: %s,%s",
++			     additional_terms, static_terms) < 0)
+ 			goto fail;
+ 	} else {
+-		if (!asprintf(&str, "valid terms: %s", static_terms))
++		if (asprintf(&str, "valid terms: %s", static_terms) < 0)
+ 			goto fail;
+ 	}
+ 	return str;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1258_6be7771fe7242d7d4399545e0c9e2f6f3cd76725.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1258_6be7771fe7242d7d4399545e0c9e2f6f3cd76725.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

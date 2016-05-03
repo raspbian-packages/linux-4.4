@@ -1,0 +1,81 @@
+commit 8568767fe1d63fbbdeacf2f69da6f84ad277d4f7
+Author: Shaohua Li <shli@fb.com>
+Date:   Wed Feb 24 17:38:28 2016 -0800
+
+    RAID5: check_reshape() shouldn't call mddev_suspend
+    
+    commit 27a353c026a879a1001e5eac4bda75b16262c44a upstream.
+    
+    check_reshape() is called from raid5d thread. raid5d thread shouldn't
+    call mddev_suspend(), because mddev_suspend() waits for all IO finish
+    but IO is handled in raid5d thread, we could easily deadlock here.
+    
+    This issue is introduced by
+    738a273 ("md/raid5: fix allocation of 'scribble' array.")
+    
+    Reported-and-tested-by: Artur Paszkiewicz <artur.paszkiewicz@intel.com>
+    Reviewed-by: NeilBrown <neilb@suse.com>
+    Signed-off-by: Shaohua Li <shli@fb.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/md/raid5.c b/drivers/md/raid5.c
+index c13921a..d3e747c 100644
+--- a/drivers/md/raid5.c
++++ b/drivers/md/raid5.c
+@@ -2091,6 +2091,14 @@ static int resize_chunks(struct r5conf *conf, int new_disks, int new_sectors)
+ 	unsigned long cpu;
+ 	int err = 0;
+ 
++	/*
++	 * Never shrink. And mddev_suspend() could deadlock if this is called
++	 * from raid5d. In that case, scribble_disks and scribble_sectors
++	 * should equal to new_disks and new_sectors
++	 */
++	if (conf->scribble_disks >= new_disks &&
++	    conf->scribble_sectors >= new_sectors)
++		return 0;
+ 	mddev_suspend(conf->mddev);
+ 	get_online_cpus();
+ 	for_each_present_cpu(cpu) {
+@@ -2112,6 +2120,10 @@ static int resize_chunks(struct r5conf *conf, int new_disks, int new_sectors)
+ 	}
+ 	put_online_cpus();
+ 	mddev_resume(conf->mddev);
++	if (!err) {
++		conf->scribble_disks = new_disks;
++		conf->scribble_sectors = new_sectors;
++	}
+ 	return err;
+ }
+ 
+@@ -6414,6 +6426,12 @@ static int raid5_alloc_percpu(struct r5conf *conf)
+ 	}
+ 	put_online_cpus();
+ 
++	if (!err) {
++		conf->scribble_disks = max(conf->raid_disks,
++			conf->previous_raid_disks);
++		conf->scribble_sectors = max(conf->chunk_sectors,
++			conf->prev_chunk_sectors);
++	}
+ 	return err;
+ }
+ 
+diff --git a/drivers/md/raid5.h b/drivers/md/raid5.h
+index a415e1c..ae6068d 100644
+--- a/drivers/md/raid5.h
++++ b/drivers/md/raid5.h
+@@ -510,6 +510,8 @@ struct r5conf {
+ 					      * conversions
+ 					      */
+ 	} __percpu *percpu;
++	int scribble_disks;
++	int scribble_sectors;
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	struct notifier_block	cpu_notify;
+ #endif
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1384_8568767fe1d63fbbdeacf2f69da6f84ad277d4f7.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1384_8568767fe1d63fbbdeacf2f69da6f84ad277d4f7.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

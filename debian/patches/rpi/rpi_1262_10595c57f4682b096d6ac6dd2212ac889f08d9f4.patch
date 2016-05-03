@@ -1,0 +1,41 @@
+commit 10595c57f4682b096d6ac6dd2212ac889f08d9f4
+Author: David Hildenbrand <dahi@linux.vnet.ibm.com>
+Date:   Mon Feb 29 09:19:24 2016 +0100
+
+    sched/preempt, sh: kmap_coherent relies on disabled preemption
+    
+    commit b15d53d009558d14c4f394a6d1fa2039c7f45c43 upstream.
+    
+    kmap_coherent needs disabled preemption to not schedule in the critical
+    section, just like kmap_coherent on mips and kmap_atomic in general.
+    
+    Fixes: 8222dbe21e79 "sched/preempt, mm/fault: Decouple preemption from the page fault logic"
+    Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+    Signed-off-by: David Hildenbrand <dahi@linux.vnet.ibm.com>
+    Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+    Signed-off-by: Rich Felker <dalias@libc.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/sh/mm/kmap.c b/arch/sh/mm/kmap.c
+index ec29e14..bf25d7c 100644
+--- a/arch/sh/mm/kmap.c
++++ b/arch/sh/mm/kmap.c
+@@ -36,6 +36,7 @@ void *kmap_coherent(struct page *page, unsigned long addr)
+ 
+ 	BUG_ON(!test_bit(PG_dcache_clean, &page->flags));
+ 
++	preempt_disable();
+ 	pagefault_disable();
+ 
+ 	idx = FIX_CMAP_END -
+@@ -64,4 +65,5 @@ void kunmap_coherent(void *kvaddr)
+ 	}
+ 
+ 	pagefault_enable();
++	preempt_enable();
+ }
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1262_10595c57f4682b096d6ac6dd2212ac889f08d9f4.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1262_10595c57f4682b096d6ac6dd2212ac889f08d9f4.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

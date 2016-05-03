@@ -1,0 +1,73 @@
+[abi]
+abiname: 1
+ignore-changes:
+# Not used by OOT modules
+ __scm_destroy
+ __scm_send
+ scm_detach_fds
+ scm_fp_dup
+ efivar_validate
+ get_thermal_instance
+ inet_csk_reqsk_queue_add
+ tcp_req_err
+ module:drivers/gpu/drm/drm_kms_helper
+ module:drivers/hv/hv_vmbus
+ module:drivers/md/dm-snapshot
+ module:drivers/mmc/host/sdhci
+ module:drivers/mmc/host/sdhci*
+ module:net/ceph/libceph
+
+[base]
+arches:
+ alpha
+ amd64
+ arm64
+ armel
+ armhf
+ hppa
+ i386
+ m68k
+ mips
+ mipsel
+ mips64
+ mips64el
+ or1k
+ powerpc
+ powerpcspe
+ ppc64
+ ppc64el
+ s390
+ s390x
+ sh4
+ sparc
+ sparc64
+ x32
+compiler: gcc-4.9
+featuresets:
+ none
+ rt
+
+[featureset-rt_base]
+enabled: true
+
+[description]
+part-long-up: This kernel is not suitable for SMP (multi-processor,
+ multi-core or hyper-threaded) systems.
+part-long-xen: This kernel also runs on a Xen hypervisor.
+ It supports both privileged (dom0) and unprivileged (domU) operation.
+
+[image]
+initramfs-generators: initramfs-tools initramfs-fallback
+
+[relations]
+# compilers
+gcc-4.8: gcc-4.8 <!stage1>
+gcc-4.9: gcc-4.9 <!stage1>
+gcc-5: gcc-5 <!stage1>
+
+# initramfs-generators
+initramfs-fallback: linux-initramfs-tool
+initramfs-tools: initramfs-tools (>= 0.110~)
+
+[packages]
+libc-dev: false

@@ -1,0 +1,142 @@
+commit 09e64d48934eb812bab8667dcce81d0387092644
+Author: Dave Stevenson <6by9@users.noreply.github.com>
+Date:   Thu Mar 17 18:16:16 2016 +0000
+
+    Add configs and overlay for PCA9548 I2C mux
+    
+    Adds kernel configs for I2C muxes and a dt overlay for PCA9548
+    that adds the 8 muxed I2C buses and mux device.
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index 4c3db73..7c4fc30 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -29,6 +29,7 @@ dtbo-$(RPI_DT_OVERLAYS) += hy28a.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += hy28b.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c-rtc.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c-gpio.dtbo
++dtbo-$(RPI_DT_OVERLAYS) += i2c-mux-pca9548a.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c0-bcm2708.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2c1-bcm2708.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += i2s-mmap.dtbo
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 9b49868..a9b1ff5 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -360,6 +360,12 @@ Params: i2c_gpio_sda            GPIO used for I2C data (default "23")
+                                 (default "2" = ~100kHz)
+ 
+ 
++Name:   i2c-mux-pca9548a
++Info:   Adds support for an NXP PCA9548A I2C multiplexer on i2c_arm
++Load:   dtoverlay=i2c-mux-pca9548a,<param>=<val>
++Params: addr                    I2C address of PCA9548A (default 0x70)
++
++
+ Name:   i2c-rtc
+ Info:   Adds support for a number of I2C Real Time Clock devices
+ Load:   dtoverlay=i2c-rtc,<param>=<val>
+diff --git a/arch/arm/boot/dts/overlays/i2c-mux-pca9548a-overlay.dts b/arch/arm/boot/dts/overlays/i2c-mux-pca9548a-overlay.dts
+new file mode 100644
+index 0000000..1729fd6
+--- /dev/null
++++ b/arch/arm/boot/dts/overlays/i2c-mux-pca9548a-overlay.dts
+@@ -0,0 +1,67 @@
++// Definitions for NXP PCA9548A I2C mux on ARM I2C bus.
++/dts-v1/;
++/plugin/;
++
++/{
++	compatible = "brcm,bcm2708";
++
++	fragment@0 {
++		target = <&i2c_arm>;
++		__overlay__ {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			status = "okay";
++
++			i2cmux: mux@70 {
++				compatible = "nxp,pca9548";
++				reg = <0x70>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				i2c@0 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <0>;
++				};
++				i2c@1 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <1>;
++				};
++				i2c@2 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <2>;
++				};
++				i2c@3 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <3>;
++				};
++				i2c@4 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <4>;
++				};
++				i2c@5 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <5>;
++				};
++				i2c@6 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <6>;
++				};
++				i2c@7 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <7>;
++				};
++			};
++		};
++	};
++	__overrides__ {
++		addr = <&i2cmux>,"reg:0";
++	};
++};
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index b63632d..2c8e4b7 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -600,6 +600,8 @@ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=m
+ CONFIG_I2C_BCM2708=m
+ CONFIG_I2C_GPIO=m
++CONFIG_I2C_MUX=m
++CONFIG_I2C_MUX_PCA954x=m
+ CONFIG_SPI=y
+ CONFIG_SPI_BCM2835=m
+ CONFIG_SPI_BCM2835AUX=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index e720c74..f6e2d84 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -593,6 +593,8 @@ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=m
+ CONFIG_I2C_BCM2708=m
+ CONFIG_I2C_GPIO=m
++CONFIG_I2C_MUX=m
++CONFIG_I2C_MUX_PCA954x=m
+ CONFIG_SPI=y
+ CONFIG_SPI_BCM2835=m
+ CONFIG_SPI_BCM2835AUX=m
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1213_09e64d48934eb812bab8667dcce81d0387092644.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1213_09e64d48934eb812bab8667dcce81d0387092644.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
