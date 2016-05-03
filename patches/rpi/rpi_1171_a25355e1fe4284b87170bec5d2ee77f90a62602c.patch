@@ -1,0 +1,46 @@
+commit a25355e1fe4284b87170bec5d2ee77f90a62602c
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Tue Mar 8 16:18:57 2016 +0000
+
+    Pi3 DT: Add pull-ups on the UART RX lines
+    
+    Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+index 36972d8..5a0c45a 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+@@ -53,13 +53,13 @@
+ 	uart0_pins: uart0_pins {
+ 		brcm,pins = <32 33>;
+ 		brcm,function = <7>; /* alt3=UART0 */
+-		brcm,pull = <0 0>;
++		brcm,pull = <0 2>;
+ 	};
+ 
+ 	uart1_pins: uart1_pins {
+ 		brcm,pins = <14 15>;
+ 		brcm,function = <2>; /* alt5=UART1 */
+-		brcm,pull = <0 0>;
++		brcm,pull = <0 2>;
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+index ae1292a..0b8f0ca 100644
+--- a/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pi3-miniuart-bt-overlay.dts
+@@ -46,7 +46,7 @@
+ 			uart1_pins: uart1_pins {
+ 				brcm,pins = <32 33>;
+ 				brcm,function = <2>; /* alt5=UART1 */
+-				brcm,pull = <0 0>;
++				brcm,pull = <0 2>;
+ 			};
+ 		};
+ 	};
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1171_a25355e1fe4284b87170bec5d2ee77f90a62602c.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1171_a25355e1fe4284b87170bec5d2ee77f90a62602c.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

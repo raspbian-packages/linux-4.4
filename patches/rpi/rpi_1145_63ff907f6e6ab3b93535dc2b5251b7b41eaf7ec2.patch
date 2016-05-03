@@ -1,0 +1,40 @@
+commit 63ff907f6e6ab3b93535dc2b5251b7b41eaf7ec2
+Author: popcornmix <popcornmix@gmail.com>
+Date:   Fri Feb 12 14:50:25 2016 +0000
+
+    dcw_otg: trim xfer length when buffer larger than allocated size is received
+
+diff --git a/drivers/usb/host/dwc_otg/dwc_otg_hcd_intr.c b/drivers/usb/host/dwc_otg/dwc_otg_hcd_intr.c
+index 8db3dfc..d672a76 100644
+--- a/drivers/usb/host/dwc_otg/dwc_otg_hcd_intr.c
++++ b/drivers/usb/host/dwc_otg/dwc_otg_hcd_intr.c
+@@ -737,6 +737,11 @@ static int update_urb_state_xfer_comp(dwc_hc_t * hc,
+ 					     DWC_OTG_HC_XFER_COMPLETE,
+ 					     &short_read);
+ 
++	if (urb->actual_length + xfer_length > urb->length) {
++		DWC_WARN("%s(): trimming xfer length\n", __func__);
++		xfer_length = urb->length - urb->actual_length;
++	}
++
+ 	/* non DWORD-aligned buffer case handling. */
+ 	if (hc->align_buff && xfer_length && hc->ep_is_in) {
+ 		dwc_memcpy(urb->buf + urb->actual_length, hc->qh->dw_align_buf,
+@@ -1423,6 +1428,12 @@ static void update_urb_state_xfer_intr(dwc_hc_t * hc,
+ {
+ 	uint32_t bytes_transferred = get_actual_xfer_length(hc, hc_regs, qtd,
+ 							    halt_status, NULL);
++
++	if (urb->actual_length + bytes_transferred > urb->length) {
++		DWC_WARN("%s(): trimming xfer length\n", __func__);
++		bytes_transferred = urb->length - urb->actual_length;
++	}
++
+ 	/* non DWORD-aligned buffer case handling. */
+ 	if (hc->align_buff && bytes_transferred && hc->ep_is_in) {
+ 		dwc_memcpy(urb->buf + urb->actual_length, hc->qh->dw_align_buf,
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1145_63ff907f6e6ab3b93535dc2b5251b7b41eaf7ec2.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1145_63ff907f6e6ab3b93535dc2b5251b7b41eaf7ec2.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

@@ -1,0 +1,125 @@
+commit cc78d091bd92300de98b1b372da7d5ee9dcd8e63
+Author: Tom Lendacky <thomas.lendacky@amd.com>
+Date:   Tue Feb 2 11:38:21 2016 -0600
+
+    crypto: ccp - Don't assume export/import areas are aligned
+    
+    commit b31dde2a5cb1bf764282abf934266b7193c2bc7c upstream.
+    
+    Use a local variable for the exported and imported state so that
+    alignment is not an issue. On export, set a local variable from the
+    request context and then memcpy the contents of the local variable to
+    the export memory area. On import, memcpy the import memory area into
+    a local variable and then use the local variable to set the request
+    context.
+    
+    Signed-off-by: Tom Lendacky <thomas.lendacky@amd.com>
+    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/crypto/ccp/ccp-crypto-aes-cmac.c b/drivers/crypto/ccp/ccp-crypto-aes-cmac.c
+index 6a2d836..d095452 100644
+--- a/drivers/crypto/ccp/ccp-crypto-aes-cmac.c
++++ b/drivers/crypto/ccp/ccp-crypto-aes-cmac.c
+@@ -223,12 +223,15 @@ static int ccp_aes_cmac_digest(struct ahash_request *req)
+ static int ccp_aes_cmac_export(struct ahash_request *req, void *out)
+ {
+ 	struct ccp_aes_cmac_req_ctx *rctx = ahash_request_ctx(req);
+-	struct ccp_aes_cmac_exp_ctx *state = out;
++	struct ccp_aes_cmac_exp_ctx state;
+ 
+-	state->null_msg = rctx->null_msg;
+-	memcpy(state->iv, rctx->iv, sizeof(state->iv));
+-	state->buf_count = rctx->buf_count;
+-	memcpy(state->buf, rctx->buf, sizeof(state->buf));
++	state.null_msg = rctx->null_msg;
++	memcpy(state.iv, rctx->iv, sizeof(state.iv));
++	state.buf_count = rctx->buf_count;
++	memcpy(state.buf, rctx->buf, sizeof(state.buf));
++
++	/* 'out' may not be aligned so memcpy from local variable */
++	memcpy(out, &state, sizeof(state));
+ 
+ 	return 0;
+ }
+@@ -236,12 +239,15 @@ static int ccp_aes_cmac_export(struct ahash_request *req, void *out)
+ static int ccp_aes_cmac_import(struct ahash_request *req, const void *in)
+ {
+ 	struct ccp_aes_cmac_req_ctx *rctx = ahash_request_ctx(req);
+-	const struct ccp_aes_cmac_exp_ctx *state = in;
++	struct ccp_aes_cmac_exp_ctx state;
++
++	/* 'in' may not be aligned so memcpy to local variable */
++	memcpy(&state, in, sizeof(state));
+ 
+-	rctx->null_msg = state->null_msg;
+-	memcpy(rctx->iv, state->iv, sizeof(rctx->iv));
+-	rctx->buf_count = state->buf_count;
+-	memcpy(rctx->buf, state->buf, sizeof(rctx->buf));
++	rctx->null_msg = state.null_msg;
++	memcpy(rctx->iv, state.iv, sizeof(rctx->iv));
++	rctx->buf_count = state.buf_count;
++	memcpy(rctx->buf, state.buf, sizeof(rctx->buf));
+ 
+ 	return 0;
+ }
+diff --git a/drivers/crypto/ccp/ccp-crypto-sha.c b/drivers/crypto/ccp/ccp-crypto-sha.c
+index a67128a..7002c6b 100644
+--- a/drivers/crypto/ccp/ccp-crypto-sha.c
++++ b/drivers/crypto/ccp/ccp-crypto-sha.c
+@@ -210,14 +210,17 @@ static int ccp_sha_digest(struct ahash_request *req)
+ static int ccp_sha_export(struct ahash_request *req, void *out)
+ {
+ 	struct ccp_sha_req_ctx *rctx = ahash_request_ctx(req);
+-	struct ccp_sha_exp_ctx *state = out;
++	struct ccp_sha_exp_ctx state;
+ 
+-	state->type = rctx->type;
+-	state->msg_bits = rctx->msg_bits;
+-	state->first = rctx->first;
+-	memcpy(state->ctx, rctx->ctx, sizeof(state->ctx));
+-	state->buf_count = rctx->buf_count;
+-	memcpy(state->buf, rctx->buf, sizeof(state->buf));
++	state.type = rctx->type;
++	state.msg_bits = rctx->msg_bits;
++	state.first = rctx->first;
++	memcpy(state.ctx, rctx->ctx, sizeof(state.ctx));
++	state.buf_count = rctx->buf_count;
++	memcpy(state.buf, rctx->buf, sizeof(state.buf));
++
++	/* 'out' may not be aligned so memcpy from local variable */
++	memcpy(out, &state, sizeof(state));
+ 
+ 	return 0;
+ }
+@@ -225,14 +228,17 @@ static int ccp_sha_export(struct ahash_request *req, void *out)
+ static int ccp_sha_import(struct ahash_request *req, const void *in)
+ {
+ 	struct ccp_sha_req_ctx *rctx = ahash_request_ctx(req);
+-	const struct ccp_sha_exp_ctx *state = in;
+-
+-	rctx->type = state->type;
+-	rctx->msg_bits = state->msg_bits;
+-	rctx->first = state->first;
+-	memcpy(rctx->ctx, state->ctx, sizeof(rctx->ctx));
+-	rctx->buf_count = state->buf_count;
+-	memcpy(rctx->buf, state->buf, sizeof(rctx->buf));
++	struct ccp_sha_exp_ctx state;
++
++	/* 'in' may not be aligned so memcpy to local variable */
++	memcpy(&state, in, sizeof(state));
++
++	rctx->type = state.type;
++	rctx->msg_bits = state.msg_bits;
++	rctx->first = state.first;
++	memcpy(rctx->ctx, state.ctx, sizeof(rctx->ctx));
++	rctx->buf_count = state.buf_count;
++	memcpy(rctx->buf, state.buf, sizeof(rctx->buf));
+ 
+ 	return 0;
+ }
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1314_cc78d091bd92300de98b1b372da7d5ee9dcd8e63.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1314_cc78d091bd92300de98b1b372da7d5ee9dcd8e63.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

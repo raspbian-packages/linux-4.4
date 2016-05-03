@@ -1,0 +1,35 @@
+commit f9153f95f2b5a1a90b81c746342bed9d40dc9ae0
+Author: Paolo Bonzini <pbonzini@redhat.com>
+Date:   Fri Mar 18 16:53:42 2016 +0100
+
+    KVM: VMX: avoid guest hang on invalid invvpid instruction
+    
+    commit f6870ee9e53430f2a318ccf0dd5e66bb46194e43 upstream.
+    
+    A guest executing an invalid invvpid instruction would hang
+    because the instruction pointer was not updated.
+    
+    Reported-by: jmontleo@redhat.com
+    Tested-by: jmontleo@redhat.com
+    Fixes: 99b83ac893b84ed1a62ad6d1f2b6cc32026b9e85
+    Reviewed-by: David Matlack <dmatlack@google.com>
+    Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/x86/kvm/vmx.c b/arch/x86/kvm/vmx.c
+index 89d5e02..75d5d5b 100644
+--- a/arch/x86/kvm/vmx.c
++++ b/arch/x86/kvm/vmx.c
+@@ -7399,6 +7399,7 @@ static int handle_invvpid(struct kvm_vcpu *vcpu)
+ 	if (!(types & (1UL << type))) {
+ 		nested_vmx_failValid(vcpu,
+ 			VMXERR_INVALID_OPERAND_TO_INVEPT_INVVPID);
++		skip_emulated_instruction(vcpu);
+ 		return 1;
+ 	}
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1254_f9153f95f2b5a1a90b81c746342bed9d40dc9ae0.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1254_f9153f95f2b5a1a90b81c746342bed9d40dc9ae0.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

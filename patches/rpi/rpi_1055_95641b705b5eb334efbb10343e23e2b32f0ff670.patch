@@ -1,0 +1,23 @@
+commit 95641b705b5eb334efbb10343e23e2b32f0ff670
+Author: popcornmix <popcornmix@gmail.com>
+Date:   Tue Feb 10 11:19:21 2015 +0000
+
+    rtl8192cu: Add PID for D-Link DWA 131
+
+diff --git a/drivers/net/wireless/realtek/rtl8192cu/os_dep/linux/usb_intf.c b/drivers/net/wireless/realtek/rtl8192cu/os_dep/linux/usb_intf.c
+index aaf45fa..09a5238 100644
+--- a/drivers/net/wireless/realtek/rtl8192cu/os_dep/linux/usb_intf.c
++++ b/drivers/net/wireless/realtek/rtl8192cu/os_dep/linux/usb_intf.c
+@@ -138,6 +138,7 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf);
+ 	{USB_DEVICE(0x2001, 0x3307)},/* D-Link - Cameo */ \
+ 	{USB_DEVICE(0x2001, 0x330A)},/* D-Link - Alpha */ \
+ 	{USB_DEVICE(0x2001, 0x3309)},/* D-Link - Alpha */ \
++	{USB_DEVICE(0x2001, 0x330D)},/* D-Link - DWA 131 */ \
+ 	{USB_DEVICE(0x0586, 0x341F)},/* Zyxel - Abocom */ \
+ 	{USB_DEVICE(0x7392, 0x7822)},/* Edimax - Edimax */ \
+ 	{USB_DEVICE(0x2019, 0xAB2B)},/* Planex - Abocom */ \
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1055_95641b705b5eb334efbb10343e23e2b32f0ff670.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1055_95641b705b5eb334efbb10343e23e2b32f0ff670.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
