@@ -1,0 +1,39 @@
+commit ee52f62c636c0c151ea92ffbf5ef940be51b0d22
+Author: Luis R. Rodriguez <mcgrof@kernel.org>
+Date:   Thu Mar 17 14:17:16 2016 -0700
+
+    ia64: define ioremap_uc()
+    
+    commit b0f84ac352762ed02d7ea9f284942a8cab7f9077 upstream.
+    
+    All architectures now need ioremap_uc(), ia64 seems defines this already
+    through its ioremap_nocache() and it already ensures it *only* uses UC.
+    
+    This is needed since v4.3 to complete an allyesconfig compile on ia64,
+    there were others archs that needed this, and this one seems to have
+    fallen through the cracks.
+    
+    Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+    Reported-by: kbuild test robot <fengguang.wu@intel.com>
+    Acked-by: Tony Luck <tony.luck@intel.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/arch/ia64/include/asm/io.h b/arch/ia64/include/asm/io.h
+index 9041bbe..8fdb9c7 100644
+--- a/arch/ia64/include/asm/io.h
++++ b/arch/ia64/include/asm/io.h
+@@ -436,6 +436,7 @@ static inline void __iomem * ioremap_cache (unsigned long phys_addr, unsigned lo
+ 	return ioremap(phys_addr, size);
+ }
+ #define ioremap_cache ioremap_cache
++#define ioremap_uc ioremap_nocache
+ 
+ 
+ /*
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1365_ee52f62c636c0c151ea92ffbf5ef940be51b0d22.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1365_ee52f62c636c0c151ea92ffbf5ef940be51b0d22.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

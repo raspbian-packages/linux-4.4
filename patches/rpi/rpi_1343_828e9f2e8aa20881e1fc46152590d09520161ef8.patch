@@ -1,0 +1,58 @@
+commit 828e9f2e8aa20881e1fc46152590d09520161ef8
+Author: Asai Thambi SP <asamymuthupa@micron.com>
+Date:   Wed Feb 24 21:16:21 2016 -0800
+
+    mtip32xx: Remove unwanted code from taskfile error handler
+    
+    commit e35b94738a2f7caa12017f69ef385cb6b8028965 upstream.
+    
+    Remove setting and clearing MTIP_PF_EH_ACTIVE_BIT flag in
+    mtip_handle_tfe() as they are redundant. Also avoid waking
+    up service thread from mtip_handle_tfe() because it is
+    already woken up in case of taskfile error.
+    
+    Signed-off-by: Selvan Mani <smani@micron.com>
+    Signed-off-by: Rajesh Kumar Sambandam <rsambandam@micron.com>
+    Signed-off-by: Asai Thambi S P <asamymuthupa@micron.com>
+    Signed-off-by: Jens Axboe <axboe@fb.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/block/mtip32xx/mtip32xx.c b/drivers/block/mtip32xx/mtip32xx.c
+index de4d965..a9cc83d 100644
+--- a/drivers/block/mtip32xx/mtip32xx.c
++++ b/drivers/block/mtip32xx/mtip32xx.c
+@@ -618,8 +618,6 @@ static void mtip_handle_tfe(struct driver_data *dd)
+ 
+ 	port = dd->port;
+ 
+-	set_bit(MTIP_PF_EH_ACTIVE_BIT, &port->flags);
+-
+ 	if (test_bit(MTIP_PF_IC_ACTIVE_BIT, &port->flags)) {
+ 		cmd = mtip_cmd_from_tag(dd, MTIP_TAG_INTERNAL);
+ 		dbg_printk(MTIP_DRV_NAME " TFE for the internal command\n");
+@@ -628,7 +626,7 @@ static void mtip_handle_tfe(struct driver_data *dd)
+ 			cmd->comp_func(port, MTIP_TAG_INTERNAL,
+ 					cmd, PORT_IRQ_TF_ERR);
+ 		}
+-		goto handle_tfe_exit;
++		return;
+ 	}
+ 
+ 	/* clear the tag accumulator */
+@@ -771,11 +769,6 @@ static void mtip_handle_tfe(struct driver_data *dd)
+ 		}
+ 	}
+ 	print_tags(dd, "reissued (TFE)", tagaccum, cmd_cnt);
+-
+-handle_tfe_exit:
+-	/* clear eh_active */
+-	clear_bit(MTIP_PF_EH_ACTIVE_BIT, &port->flags);
+-	wake_up_interruptible(&port->svc_wait);
+ }
+ 
+ /*
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1343_828e9f2e8aa20881e1fc46152590d09520161ef8.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1343_828e9f2e8aa20881e1fc46152590d09520161ef8.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

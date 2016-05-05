@@ -1,0 +1,26 @@
+commit 084eeec470e76e8c84cda1a31e323610467913bd
+Author: Eric Anholt <eric@anholt.net>
+Date:   Mon Oct 12 11:23:34 2015 -0700
+
+    clk: bcm2835: Also build the driver for downstream kernels.
+    
+    Signed-off-by: Eric Anholt <eric@anholt.net>
+
+diff --git a/drivers/clk/bcm/Makefile b/drivers/clk/bcm/Makefile
+index 3fc9506..a1b4cbc 100644
+--- a/drivers/clk/bcm/Makefile
++++ b/drivers/clk/bcm/Makefile
+@@ -3,7 +3,7 @@ obj-$(CONFIG_CLK_BCM_KONA)	+= clk-kona-setup.o
+ obj-$(CONFIG_CLK_BCM_KONA)	+= clk-bcm281xx.o
+ obj-$(CONFIG_CLK_BCM_KONA)	+= clk-bcm21664.o
+ obj-$(CONFIG_COMMON_CLK_IPROC)	+= clk-iproc-armpll.o clk-iproc-pll.o clk-iproc-asiu.o
+-obj-$(CONFIG_ARCH_BCM2835)	+= clk-bcm2835.o
++obj-$(CONFIG_ARCH_BCM2835)$(CONFIG_ARCH_BCM2708)$(CONFIG_ARCH_BCM2709)	+= clk-bcm2835.o
+ obj-$(CONFIG_COMMON_CLK_IPROC)	+= clk-ns2.o
+ obj-$(CONFIG_ARCH_BCM_CYGNUS)	+= clk-cygnus.o
+ obj-$(CONFIG_ARCH_BCM_NSP)	+= clk-nsp.o
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1103_084eeec470e76e8c84cda1a31e323610467913bd.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1103_084eeec470e76e8c84cda1a31e323610467913bd.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

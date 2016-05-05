@@ -1,0 +1,31 @@
+commit 81dbf19b16cc789162ac94cd4e764a667111386e
+Author: Eric Anholt <eric@anholt.net>
+Date:   Fri Oct 23 12:31:56 2015 +0100
+
+    drm/vc4: No need to stop the stopped threads.
+    
+    This was leftover debug code from the hackdriver.  We never submit
+    unless the thread is already idle.
+    
+    Signed-off-by: Eric Anholt <eric@anholt.net>
+
+diff --git a/drivers/gpu/drm/vc4/vc4_gem.c b/drivers/gpu/drm/vc4/vc4_gem.c
+index 55551ea..eeb0925 100644
+--- a/drivers/gpu/drm/vc4/vc4_gem.c
++++ b/drivers/gpu/drm/vc4/vc4_gem.c
+@@ -104,10 +104,6 @@ submit_cl(struct drm_device *dev, uint32_t thread, uint32_t start, uint32_t end)
+ {
+ 	struct vc4_dev *vc4 = to_vc4_dev(dev);
+ 
+-	/* Stop any existing thread and set state to "stopped at halt" */
+-	V3D_WRITE(V3D_CTNCS(thread), V3D_CTRUN);
+-	barrier();
+-
+ 	V3D_WRITE(V3D_CTNCA(thread), start);
+ 	barrier();
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1097_81dbf19b16cc789162ac94cd4e764a667111386e.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1097_81dbf19b16cc789162ac94cd4e764a667111386e.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

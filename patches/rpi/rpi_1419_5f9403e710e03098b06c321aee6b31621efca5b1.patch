@@ -1,0 +1,35 @@
+commit 5f9403e710e03098b06c321aee6b31621efca5b1
+Author: Alexander Kochetkov <al.kochet@gmail.com>
+Date:   Tue Jan 26 16:34:00 2016 +0300
+
+    clk: rockchip: add hclk_cpubus to the list of rk3188 critical clocks
+    
+    commit e8b63288b37dbb8457b510c9d96f6006da4653f6 upstream.
+    
+    hclk_cpubus needs to keep running because it is needed for devices like
+    the rom, i2s0 or spdif to be accessible via cpu. Without that all
+    accesses to devices (readl/writel) return wrong data. So add it
+    to the list of critical clocks.
+    
+    Fixes: 78eaf6095cc763c ("clk: rockchip: disable unused clocks")
+    Signed-off-by: Alexander Kochetkov <al.kochet@gmail.com>
+    Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/clk/rockchip/clk-rk3188.c b/drivers/clk/rockchip/clk-rk3188.c
+index abb4760..fe728f8 100644
+--- a/drivers/clk/rockchip/clk-rk3188.c
++++ b/drivers/clk/rockchip/clk-rk3188.c
+@@ -718,6 +718,7 @@ static const char *const rk3188_critical_clocks[] __initconst = {
+ 	"hclk_peri",
+ 	"pclk_cpu",
+ 	"pclk_peri",
++	"hclk_cpubus"
+ };
+ 
+ static void __init rk3188_common_clk_init(struct device_node *np)
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1419_5f9403e710e03098b06c321aee6b31621efca5b1.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1419_5f9403e710e03098b06c321aee6b31621efca5b1.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

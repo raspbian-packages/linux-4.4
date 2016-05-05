@@ -1,0 +1,23 @@
+commit b40108b826ed9e1c558f73b9dbabb8d80ded268b
+Author: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date:   Tue Apr 12 09:09:26 2016 -0700
+
+    Linux 4.4.7
+
+diff --git a/Makefile b/Makefile
+index 87d12b4..5a493e7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,6 +1,6 @@
+ VERSION = 4
+ PATCHLEVEL = 4
+-SUBLEVEL = 6
++SUBLEVEL = 7
+ EXTRAVERSION =
+ NAME = Blurry Fish Butt
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1448_b40108b826ed9e1c558f73b9dbabb8d80ded268b.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1448_b40108b826ed9e1c558f73b9dbabb8d80ded268b.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

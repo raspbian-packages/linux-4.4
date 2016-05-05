@@ -1,0 +1,49 @@
+commit 027ba808e84799c97ae1c64f8424ac8eb7235cc4
+Author: Matthias Reichl <hias@horus.com>
+Date:   Sun Oct 11 15:55:21 2015 +0200
+
+    bcm2835-i2s: Enable MMAP support via a DT property
+    
+    Code ported from bcm2708-i2s driver in Raspberry Pi tree.
+    
+    RPi commit 7ee829fd77a30127db5d0b3c7d79b8718166e568 ("bcm2708-i2s:
+    Enable MMAP support via a DT property and overlay")
+    
+    The i2s driver used to claim to support MMAP, but that feature was disabled
+    when some problems were found. Add the ability to enable this feature
+    through Device Tree, using the i2s-mmap overlay.
+    
+    See: #1004
+    
+    Signed-off-by: Matthias Reichl <hias@horus.com>
+
+diff --git a/sound/soc/bcm/bcm2835-i2s.c b/sound/soc/bcm/bcm2835-i2s.c
+index 0e5c787..04c1d13 100644
+--- a/sound/soc/bcm/bcm2835-i2s.c
++++ b/sound/soc/bcm/bcm2835-i2s.c
+@@ -799,7 +799,7 @@ static const struct snd_soc_component_driver bcm2835_i2s_component = {
+ 	.name		= "bcm2835-i2s-comp",
+ };
+ 
+-static const struct snd_pcm_hardware bcm2835_pcm_hardware = {
++static struct snd_pcm_hardware bcm2835_pcm_hardware = {
+ 	.info			= SNDRV_PCM_INFO_INTERLEAVED |
+ 				  SNDRV_PCM_INFO_JOINT_DUPLEX,
+ 	.formats		= SNDRV_PCM_FMTBIT_S16_LE |
+@@ -835,6 +835,11 @@ static int bcm2835_i2s_probe(struct platform_device *pdev)
+ 	}
+ 	dma_reg_base = be32_to_cpup(addr);
+ 
++	if (of_property_read_bool(pdev->dev.of_node, "brcm,enable-mmap"))
++		bcm2835_pcm_hardware.info |=
++			SNDRV_PCM_INFO_MMAP |
++			SNDRV_PCM_INFO_MMAP_VALID;
++
+ 	/* Request both ioareas */
+ 	for (i = 0; i <= 1; i++) {
+ 		void __iomem *base;
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1018_027ba808e84799c97ae1c64f8424ac8eb7235cc4.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1018_027ba808e84799c97ae1c64f8424ac8eb7235cc4.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
