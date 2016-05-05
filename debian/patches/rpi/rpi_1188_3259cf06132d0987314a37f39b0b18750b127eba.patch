@@ -1,0 +1,57 @@
+commit 3259cf06132d0987314a37f39b0b18750b127eba
+Author: Phil Elwell <phil@raspberrypi.org>
+Date:   Tue Mar 15 16:41:37 2016 +0000
+
+    BCM270X_DT: Build and document the wittypi overlay
+    
+    Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index d81fa09..4f3ca9c 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -74,6 +74,7 @@ dtbo-$(RPI_DT_OVERLAYS) += vc4-kms-v3d.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += vga666.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += w1-gpio.dtbo
+ dtbo-$(RPI_DT_OVERLAYS) += w1-gpio-pullup.dtbo
++dtbo-$(RPI_DT_OVERLAYS) += wittypi.dtbo
+ 
+ targets += dtbs dtbs_install
+ targets += $(dtbo-y)
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 6fa5b80..d939739 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -920,6 +920,14 @@ Params: gpiopin                 GPIO for I/O (default "4")
+         extpullup               GPIO for external pullup (default "5")
+ 
+ 
++Name:   wittypi
++Info:   Configures the wittypi RTC module.
++Load:   dtoverlay=wittypi,<param>=<val>
++Params: led_gpio                GPIO for LED (default "17")
++        led_trigger             Choose which activity the LED tracks (default
++                                "default-on")
++
++
+ Troubleshooting
+ ===============
+ 
+diff --git a/arch/arm/boot/dts/overlays/wittypi-overlay.dts b/arch/arm/boot/dts/overlays/wittypi-overlay.dts
+index be5987d..8498134 100644
+--- a/arch/arm/boot/dts/overlays/wittypi-overlay.dts
++++ b/arch/arm/boot/dts/overlays/wittypi-overlay.dts
+@@ -37,7 +37,7 @@
+ 	};
+ 
+ 	__overrides__ {
+-		led_gpio =		<&wittypi_led>,"gpios:4";
++		led_gpio =	<&wittypi_led>,"gpios:4";
+ 		led_trigger =	<&wittypi_led>,"linux,default-trigger";
+ 	};
+ 
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1188_3259cf06132d0987314a37f39b0b18750b127eba.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1188_3259cf06132d0987314a37f39b0b18750b127eba.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

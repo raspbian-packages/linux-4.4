@@ -1,0 +1,69 @@
+commit eae2b56828230fe326167d67a0ec6e777e69afee
+Author: Joseph Qi <joseph.qi@huawei.com>
+Date:   Fri Mar 25 14:21:29 2016 -0700
+
+    ocfs2/dlm: fix BUG in dlm_move_lockres_to_recovery_list
+    
+    commit be12b299a83fc807bbaccd2bcb8ec50cbb0cb55c upstream.
+    
+    When master handles convert request, it queues ast first and then
+    returns status.  This may happen that the ast is sent before the request
+    status because the above two messages are sent by two threads.  And
+    right after the ast is sent, if master down, it may trigger BUG in
+    dlm_move_lockres_to_recovery_list in the requested node because ast
+    handler moves it to grant list without clear lock->convert_pending.  So
+    remove BUG_ON statement and check if the ast is processed in
+    dlmconvert_remote.
+    
+    Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+    Reported-by: Yiwen Jiang <jiangyiwen@huawei.com>
+    Cc: Junxiao Bi <junxiao.bi@oracle.com>
+    Cc: Mark Fasheh <mfasheh@suse.de>
+    Cc: Joel Becker <jlbec@evilplan.org>
+    Cc: Tariq Saeed <tariq.x.saeed@oracle.com>
+    Cc: Junxiao Bi <junxiao.bi@oracle.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/fs/ocfs2/dlm/dlmconvert.c b/fs/ocfs2/dlm/dlmconvert.c
+index 84de55e..f909313 100644
+--- a/fs/ocfs2/dlm/dlmconvert.c
++++ b/fs/ocfs2/dlm/dlmconvert.c
+@@ -288,6 +288,19 @@ enum dlm_status dlmconvert_remote(struct dlm_ctxt *dlm,
+ 		status = DLM_DENIED;
+ 		goto bail;
+ 	}
++
++	if (lock->ml.type == type && lock->ml.convert_type == LKM_IVMODE) {
++		mlog(0, "last convert request returned DLM_RECOVERING, but "
++		     "owner has already queued and sent ast to me. res %.*s, "
++		     "(cookie=%u:%llu, type=%d, conv=%d)\n",
++		     res->lockname.len, res->lockname.name,
++		     dlm_get_lock_cookie_node(be64_to_cpu(lock->ml.cookie)),
++		     dlm_get_lock_cookie_seq(be64_to_cpu(lock->ml.cookie)),
++		     lock->ml.type, lock->ml.convert_type);
++		status = DLM_NORMAL;
++		goto bail;
++	}
++
+ 	res->state |= DLM_LOCK_RES_IN_PROGRESS;
+ 	/* move lock to local convert queue */
+ 	/* do not alter lock refcount.  switching lists. */
+diff --git a/fs/ocfs2/dlm/dlmrecovery.c b/fs/ocfs2/dlm/dlmrecovery.c
+index 42f0cae..4a33880 100644
+--- a/fs/ocfs2/dlm/dlmrecovery.c
++++ b/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2064,7 +2064,6 @@ void dlm_move_lockres_to_recovery_list(struct dlm_ctxt *dlm,
+ 			dlm_lock_get(lock);
+ 			if (lock->convert_pending) {
+ 				/* move converting lock back to granted */
+-				BUG_ON(i != DLM_CONVERTING_LIST);
+ 				mlog(0, "node died with convert pending "
+ 				     "on %.*s. move back to granted list.\n",
+ 				     res->lockname.len, res->lockname.name);
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1437_eae2b56828230fe326167d67a0ec6e777e69afee.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1437_eae2b56828230fe326167d67a0ec6e777e69afee.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

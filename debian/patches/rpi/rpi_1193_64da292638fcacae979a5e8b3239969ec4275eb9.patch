@@ -1,0 +1,25 @@
+commit 64da292638fcacae979a5e8b3239969ec4275eb9
+Author: Eric Anholt <eric@anholt.net>
+Date:   Mon Jan 25 13:03:33 2016 -0800
+
+    drm/vc4: Include vc4_drm.h in uapi in downstream build.
+    
+    Signed-off-by: Eric Anholt <eric@anholt.net>
+
+diff --git a/include/uapi/drm/Kbuild b/include/uapi/drm/Kbuild
+index 38d4370..23381b5 100644
+--- a/include/uapi/drm/Kbuild
++++ b/include/uapi/drm/Kbuild
+@@ -14,6 +14,7 @@ header-y += radeon_drm.h
+ header-y += savage_drm.h
+ header-y += sis_drm.h
+ header-y += tegra_drm.h
++header-y += vc4_drm.h
+ header-y += via_drm.h
+ header-y += vmwgfx_drm.h
+ header-y += msm_drm.h
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1193_64da292638fcacae979a5e8b3239969ec4275eb9.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1193_64da292638fcacae979a5e8b3239969ec4275eb9.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.

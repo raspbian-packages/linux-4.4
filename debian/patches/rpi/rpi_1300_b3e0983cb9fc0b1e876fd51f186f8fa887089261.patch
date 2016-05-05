@@ -1,0 +1,60 @@
+commit b3e0983cb9fc0b1e876fd51f186f8fa887089261
+Author: Josh Boyer <jwboyer@fedoraproject.org>
+Date:   Thu Mar 10 09:48:52 2016 -0500
+
+    USB: serial: ftdi_sio: Add support for ICP DAS I-756xU devices
+    
+    commit ea6db90e750328068837bed34cb1302b7a177339 upstream.
+    
+    A Fedora user reports that the ftdi_sio driver works properly for the
+    ICP DAS I-7561U device.  Further, the user manual for these devices
+    instructs users to load the driver and add the ids using the sysfs
+    interface.
+    
+    Add support for these in the driver directly so that the devices work
+    out of the box instead of needing manual configuration.
+    
+    Reported-by: <thesource@mail.ru>
+    Signed-off-by: Josh Boyer <jwboyer@fedoraproject.org>
+    Signed-off-by: Johan Hovold <johan@kernel.org>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+diff --git a/drivers/usb/serial/ftdi_sio.c b/drivers/usb/serial/ftdi_sio.c
+index 8c660ae..b61f121 100644
+--- a/drivers/usb/serial/ftdi_sio.c
++++ b/drivers/usb/serial/ftdi_sio.c
+@@ -1004,6 +1004,10 @@ static const struct usb_device_id id_table_combined[] = {
+ 	{ USB_DEVICE(FTDI_VID, CHETCO_SEASMART_DISPLAY_PID) },
+ 	{ USB_DEVICE(FTDI_VID, CHETCO_SEASMART_LITE_PID) },
+ 	{ USB_DEVICE(FTDI_VID, CHETCO_SEASMART_ANALOG_PID) },
++	/* ICP DAS I-756xU devices */
++	{ USB_DEVICE(ICPDAS_VID, ICPDAS_I7560U_PID) },
++	{ USB_DEVICE(ICPDAS_VID, ICPDAS_I7561U_PID) },
++	{ USB_DEVICE(ICPDAS_VID, ICPDAS_I7563U_PID) },
+ 	{ }					/* Terminating entry */
+ };
+ 
+diff --git a/drivers/usb/serial/ftdi_sio_ids.h b/drivers/usb/serial/ftdi_sio_ids.h
+index a84df25..c5d6c1e 100644
+--- a/drivers/usb/serial/ftdi_sio_ids.h
++++ b/drivers/usb/serial/ftdi_sio_ids.h
+@@ -872,6 +872,14 @@
+ #define NOVITUS_BONO_E_PID		0x6010
+ 
+ /*
++ * ICPDAS I-756*U devices
++ */
++#define ICPDAS_VID			0x1b5c
++#define ICPDAS_I7560U_PID		0x0103
++#define ICPDAS_I7561U_PID		0x0104
++#define ICPDAS_I7563U_PID		0x0105
++
++/*
+  * RT Systems programming cables for various ham radios
+  */
+ #define RTSYSTEMS_VID		0x2100	/* Vendor ID */
+diff -uN a/1.txt b/1.txt
+--- a/dummy/rpi_1300_b3e0983cb9fc0b1e876fd51f186f8fa887089261.txt	1970-01-01 00:00:00.000000000 +0000
++++ b/dummy/rpi_1300_b3e0983cb9fc0b1e876fd51f186f8fa887089261.txt	2013-12-23 04:07:40.000000000 +0000
+@@ -0,0 +1 @@
++dummy file to ensure patch has content.
